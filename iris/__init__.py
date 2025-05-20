@@ -1,14 +1,10 @@
 import argparse
-import json
 from getpass import getpass
 from os.path import basename, dirname, exists, isabs, join
 import os
 import sys
-import webbrowser
 
 import flask
-import numpy as np
-import yaml
 
 from iris.extensions import db, compress
 from iris.project import project
@@ -58,6 +54,7 @@ def run_app():
         print('IRIS is being served in production mode at http://{}:{}'.format(project['host'], project['port']))
         app_server.serve_forever()
     else:
+        print('IRIS is being served in development mode at http://{}:{}'.format(project['host'], project['port']))
         app.run(debug=project.debug, host=project['host'], port=project['port'])
 
 def create_app(project_file, args):
@@ -85,19 +82,13 @@ def create_default_admin(app):
     if admin is not None:
         return
 
-    print('Welcome to IRIS! No admin user was detected so please enter a new admin password.')
-    password_again = None
-    password_valid = False
-    while not password_valid:
-        password = getpass('New admin password: ')
-        if password=='' or ' ' in password:
-            print('Password cannot be blank, and must not contain a space.')
-        else:
-            password_valid = True
-
-    while password != password_again:
-        password_again = getpass('Retype admin password: ')
-
+    print('Welcome to IRIS! No admin user was detected, autogenerating password...')
+    # Generate a random password:
+    password = os.urandom(16).hex()
+    print(f"Please remember these admin credentials: \n"
+          f"Username: admin\n"
+          f"Password: {password}\n")
+    
     admin = User(
         name='admin',
         admin=True,

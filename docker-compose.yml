@@ -1,0 +1,16 @@
+volumes: {
+  dataset: {}
+}
+
+services:
+  iris:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./demo:/dataset
+    ports:
+      - "5000:5000"
+    command: >
+      label /dataset/cloud-segmentation-docker.json
+
