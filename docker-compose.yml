@@ -12,5 +12,13 @@ services:
     ports:
       - "5000:5000"
     command: >
-      label /dataset/cloud-segmentation-docker.json
+      label /dataset/cloud-segmentation-docker.json -p
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - iris
 
