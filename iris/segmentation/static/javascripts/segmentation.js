@@ -71,19 +71,19 @@ let commands = {
     //     "key": "B", "description": "Highlight edges on the masks",
     // },
     "toggle_contrast": {
-        "key": "C", 
+        "key": "C",
         "description": "Toggle contrast on/off"
     },
     "toggle_invert": {
-        "key": "I", 
+        "key": "I",
         "description": "Toggle inversion on/off"
     },
     "brightness_up": {
-        "key": "Arrow-Up", 
+        "key": "Arrow-Up",
         "description": "Increase brightness (+10%)"
     },
     "brightness_down": {
-        "key": "Arrow-Down", 
+        "key": "Arrow-Down",
         "description": "Decrease brightness (-10%)"
     },
     "saturation_up": {
@@ -100,37 +100,42 @@ let commands = {
     },
     "show_view_controls": {
         "key": "V",
-        "description":"Toggle display of view controls on/off"
+        "description": "Toggle display of view controls on/off"
     },
     "next_view_group": {
         "key": "B",
         "description": "Switch to next group view"
-    }
+    },
+    "download_mask": {
+        "key": "M",
+        "description": "Download the current mask as npy file"
+    },
+
 };
 
-function init_segmentation(){
+function init_segmentation() {
     show_loader("Fetching user information...");
 
     // Before we start, we check for the login, etc.
     vars.next_action = init_views;
-    fetch_server_update(update_config=true);
+    fetch_server_update(update_config = true);
 }
 
-function newuser_help_popup(){
+function newuser_help_popup() {
     // Open the help menu if the user is new (no saved masks):
-    if (vars.user.segmentation.n_masks == 0 && vars.just_logged_in == true){
+    if (vars.user.segmentation.n_masks == 0 && vars.just_logged_in == true) {
         dialogue_help();
         vars.just_logged_in = false;
     }
 }
 
-function init_views(){
+function init_views() {
     show_loader("Loading views...");
     vars.vm = new ViewManager(
         get_object('views-container'),
         vars.config.views, vars.config.view_groups,
-        vars.url.main+"image/",
-        image_aspect_ratio=vars.image_shape[0]/vars.image_shape[1]
+        vars.url.main + "image/",
+        image_aspect_ratio = vars.image_shape[0] / vars.image_shape[1]
     );
 
     // Add standard layers to all view ports if the view type is not "bingmap":
@@ -175,35 +180,35 @@ function init_views(){
     newuser_help_popup();
 }
 
-function init_events(){
+function init_events() {
     document.body.onkeydown = key_down;
     document.body.onkeyup = key_up;
     document.body.onresize = () => vars.vm.updateSize();
 
     window.addEventListener('unload', (event) => {
-      // Cancel the event as stated by the standard.
-      event.preventDefault();
+        // Cancel the event as stated by the standard.
+        event.preventDefault();
 
-      save_mask();
+        save_mask();
 
-      // Chrome requires returnValue to be set.
-      event.returnValue = '';
-      return '';
+        // Chrome requires returnValue to be set.
+        event.returnValue = '';
+        return '';
     });
 }
 
-function init_toolbar_events(){
+function init_toolbar_events() {
     let toolbuttons = document.getElementsByClassName("toolbutton");
     for (let toolbutton of toolbuttons) {
-        if (toolbutton.id === null){
+        if (toolbutton.id === null) {
             continue;
         }
         let command_id = toolbutton.id.substr(3);
-        if (command_id in commands){
+        if (command_id in commands) {
             let text = commands[command_id].description;
 
-            if ('key' in commands[command_id]){
-                text = '<span class="key">'+commands[command_id].key+'</span> ' + text;
+            if ('key' in commands[command_id]) {
+                text = '<span class="key">' + commands[command_id].key + '</span> ' + text;
             }
 
             toolbutton.onmouseenter = show_message.bind(null, text, null);
@@ -212,77 +217,77 @@ function init_toolbar_events(){
     }
 }
 
-function key_down(event){
+function key_down(event) {
     let key = event.code;
 
-    if (get_object('dialogue').style.display == "block"){
+    if (get_object('dialogue').style.display == "block") {
         // Don't allow any key events during an opened dialogue
-    }else if (key == "Space"){
+    } else if (key == "Space") {
         show_mask(!vars.show_mask);
-    } else if (key == "KeyS"){
+    } else if (key == "KeyS") {
         save_mask();
-    } else if (key == "Enter"){
+    } else if (key == "Enter") {
         save_mask(next_image);
-    } else if (key == "Backspace"){
+    } else if (key == "Backspace") {
         save_mask(prev_image);
-    } else if (key == "KeyU"){
+    } else if (key == "KeyU") {
         undo();
-    } else if (key == "KeyR"){
+    } else if (key == "KeyR") {
         redo();
-    } else if (key == "KeyC"){
+    } else if (key == "KeyC") {
         set_contrast(!vars.vm.filters.contrast);
-    } else if (key == "KeyI"){
+    } else if (key == "KeyI") {
         set_invert(!vars.vm.filters.invert);
-    } else if (key == "ArrowUp"){
-        change_brightness(up=true);
-    } else if (key == "ArrowDown"){
-        change_brightness(up=false);
-    } else if (key == "ArrowRight"){
-        change_saturation(up=true);
-    } else if (key == "ArrowLeft"){
-        change_saturation(up=false);
-    } else if (key == "KeyX"){
+    } else if (key == "ArrowUp") {
+        change_brightness(up = true);
+    } else if (key == "ArrowDown") {
+        change_brightness(up = false);
+    } else if (key == "ArrowRight") {
+        change_saturation(up = true);
+    } else if (key == "ArrowLeft") {
+        change_saturation(up = false);
+    } else if (key == "KeyX") {
         reset_filters();
-    } else if (key == "KeyY"){
+    } else if (key == "KeyY") {
         reset_views();
-    } else if (key == "KeyA"){
+    } else if (key == "KeyA") {
         predict_mask();
-    } else if (key == "KeyF"){
+    } else if (key == "KeyF") {
         set_mask_type("final");
-    } else if (key == "KeyG"){
+    } else if (key == "KeyG") {
         set_mask_type("user");
-    } else if (key == "KeyH"){
+    } else if (key == "KeyH") {
         set_mask_type("errors");
-    } else if (key.startsWith("Digit") || key.startsWith("Numpad")){
+    } else if (key.startsWith("Digit") || key.startsWith("Numpad")) {
         // Why do we subtract 1 from this? The class ids start with 0, so we
         // want to make the hotkey easier:
-        var class_id = parseInt(key[key.length-1]) - 1;
-        if (class_id < vars.classes.length){
+        var class_id = parseInt(key[key.length - 1]) - 1;
+        if (class_id < vars.classes.length) {
             set_current_class(class_id);
         }
-    } else if (key == "KeyD"){
+    } else if (key == "KeyD") {
         set_tool("draw");
-    } else if (key == "KeyE"){
+    } else if (key == "KeyE") {
         set_tool("eraser");
-    } else if (key == "KeyW"){
+    } else if (key == "KeyW") {
         set_tool("move");
-    } else if (key == "KeyN"){
+    } else if (key == "KeyN") {
         dialogue_reset_mask();
-    } else if (key == "KeyV"){
+    } else if (key == "KeyV") {
         vars.vm.toggleControls();
-    } else if (key == "KeyB"){
+    } else if (key == "KeyB") {
         vars.vm.showNextGroup();
-    } else if (event.shiftKey){
+    } else if (event.shiftKey) {
         vars.tool.resizing_mode = true;
     }
 }
 
-function key_up(event){
+function key_up(event) {
     vars.tool.resizing_mode = event.shiftKey;
 }
 
-function change_brightness(up){
-    if (up){
+function change_brightness(up) {
+    if (up) {
         vars.vm.filters.brightness += 10;
         vars.vm.filters.brightness = Math.min(800, vars.vm.filters.brightness);
     } else {
@@ -291,8 +296,8 @@ function change_brightness(up){
     }
     vars.vm.render();
 }
-function change_saturation(up){
-    if (up){
+function change_saturation(up) {
+    if (up) {
         vars.vm.filters.saturation += 20;
         vars.vm.filters.saturation = Math.min(800, vars.vm.filters.saturation);
     } else {
@@ -302,7 +307,7 @@ function change_saturation(up){
     vars.vm.render();
 }
 
-function set_current_class(class_id){
+function set_current_class(class_id) {
     vars.current_class = class_id;
     var colour = vars.classes[class_id].colour;
     var css_colour = rgba2css(colour);
@@ -313,10 +318,10 @@ function set_current_class(class_id){
     set_tool("draw");
 }
 
-function set_contrast(visible){
+function set_contrast(visible) {
     vars.vm.filters.contrast = visible;
 
-    if (vars.vm.filters.contrast){
+    if (vars.vm.filters.contrast) {
         get_object("tb_toggle_contrast").classList.add("checked");
     } else {
         get_object("tb_toggle_contrast").classList.remove("checked");
@@ -325,10 +330,10 @@ function set_contrast(visible){
     vars.vm.render();
 }
 
-function set_invert(visible){
+function set_invert(visible) {
     vars.vm.filters.invert = visible;
 
-    if (vars.vm.filters.invert){
+    if (vars.vm.filters.invert) {
         get_object("tb_toggle_invert").classList.add("checked");
     } else {
         get_object("tb_toggle_invert").classList.remove("checked");
@@ -337,30 +342,30 @@ function set_invert(visible){
     vars.vm.render();
 }
 
-function set_tool(tool){
-    get_object("tb_tool_"+vars.tool.type).classList.remove("checked");
-    get_object("tb_tool_"+tool).classList.add("checked");
+function set_tool(tool) {
+    get_object("tb_tool_" + vars.tool.type).classList.remove("checked");
+    get_object("tb_tool_" + tool).classList.add("checked");
 
     vars.tool.type = tool;
 
     render_preview();
 }
 
-function get_tool_offset(){
+function get_tool_offset() {
     /*Since we have draw with a tool, this returns the offset of the tool sprite*/
-    if (vars.tool.size == 1){
-        return {'x': 0, 'y': 0}
+    if (vars.tool.size == 1) {
+        return { 'x': 0, 'y': 0 }
     }
 
     return {
-        'x': round_number(-vars.tool.size/2),
-        'y': round_number(-vars.tool.size/2),
+        'x': round_number(-vars.tool.size / 2),
+        'y': round_number(-vars.tool.size / 2),
     };
 }
 
-function mouse_wheel(event){
+function mouse_wheel(event) {
     var delta = Math.max(-1, Math.min(1, (event.wheelDelta || -event.detail)));
-    if (vars.tool.resizing_mode){
+    if (vars.tool.resizing_mode) {
         // Change size of tool:
         vars.tool.size += delta * 0.5 * vars.tool.size;
         vars.tool.size = round_number(Math.max(
@@ -374,22 +379,22 @@ function mouse_wheel(event){
     }
 }
 
-function mouse_move(event){
+function mouse_move(event) {
     update_cursor_coords(this, event);
     if (
         (event.buttons == 2
-        || event.buttons == 4
-        || (event.buttons == 1 && vars.tool.type == 'move'))
+            || event.buttons == 4
+            || (event.buttons == 1 && vars.tool.type == 'move'))
         && vars.drag_start !== null
-    ){
+    ) {
         move(
-            vars.cursor_image[0]-vars.drag_start[0],
-            vars.cursor_image[1]-vars.drag_start[1]
+            vars.cursor_image[0] - vars.drag_start[0],
+            vars.cursor_image[1] - vars.drag_start[1]
         );
     }
 
     // mouse left button must be pressed to draw
-    if (event.buttons == 1 && vars.tool.type != 'move'){
+    if (event.buttons == 1 && vars.tool.type != 'move') {
         user_draws_on_mask();
     }
 
@@ -397,40 +402,40 @@ function mouse_move(event){
     render_preview();
 }
 
-function mouse_down(event){
+function mouse_down(event) {
     update_cursor_coords(this, event);
 
-    if (event.buttons == 1 && vars.tool.type != 'move'){
+    if (event.buttons == 1 && vars.tool.type != 'move') {
         user_draws_on_mask();
         vars.drag_start = null;
     } else if (
         event.buttons == 2
         || event.buttons == 4
         || (event.buttons == 1 && vars.tool.type == 'move')
-    ){
+    ) {
         vars.drag_start = [...vars.cursor_image];
     }
 }
 
-function mouse_up(event){
+function mouse_up(event) {
     vars.drag_start = null;
 }
 
-function mouse_enter(event){
+function mouse_enter(event) {
     update_cursor_coords(this, event);
     if (
         event.buttons == 2
         || event.buttons == 4
         || (event.buttons == 1 && vars.tool.type == 'move')
-    ){
+    ) {
         vars.drag_start = [...vars.cursor_image];
     }
 }
 
-function zoom(delta){
+function zoom(delta) {
     let factor = Math.pow(1.1, delta);
 
-    for (let canvas of document.getElementsByClassName('view-canvas')){
+    for (let canvas of document.getElementsByClassName('view-canvas')) {
         let ctx = canvas.getContext('2d');
         // This makes sure that we zoom onto the current cursor position:
         ctx.translate(...vars.cursor_image);
@@ -442,12 +447,12 @@ function zoom(delta){
     update_views();
 }
 
-function move(dx, dy){
-    if (dx == 0 && dy == 0){
+function move(dx, dy) {
+    if (dx == 0 && dy == 0) {
         return;
     }
 
-    for (let canvas of document.getElementsByClassName('view-canvas')){
+    for (let canvas of document.getElementsByClassName('view-canvas')) {
         let ctx = canvas.getContext('2d');
         ctx.translate(dx, dy);
         constrain_view(ctx, 1, dx, dy);
@@ -455,10 +460,10 @@ function move(dx, dy){
     update_views();
 }
 
-function constrain_view(ctx, scale, dx, dy){
+function constrain_view(ctx, scale, dx, dy) {
     let transforms = ctx.getTransform();
 
-    if (transforms.a*scale < ctx.canvas.width / vars.image_shape[0]){
+    if (transforms.a * scale < ctx.canvas.width / vars.image_shape[0]) {
         // We don't want to allow any zooming outside of the image area and reset
         // it to the default view
 
@@ -471,18 +476,18 @@ function constrain_view(ctx, scale, dx, dy){
     }
 
     let top_left = ctx.getCanvasCoords(0, 0);
-    if (top_left.x > 0){
+    if (top_left.x > 0) {
         transforms.e -= top_left.x;
     }
-    if (top_left.y > 0){
+    if (top_left.y > 0) {
         transforms.f -= top_left.y;
     }
 
     let bottom_right = ctx.getCanvasCoords(...vars.image_shape);
-    if (bottom_right.x < ctx.canvas.width){
+    if (bottom_right.x < ctx.canvas.width) {
         transforms.e -= bottom_right.x - ctx.canvas.width;
     }
-    if (bottom_right.y < ctx.canvas.height){
+    if (bottom_right.y < ctx.canvas.height) {
         transforms.f -= bottom_right.y - ctx.canvas.height;
     }
 
@@ -492,7 +497,7 @@ function constrain_view(ctx, scale, dx, dy){
     );
 }
 
-function update_views(){
+function update_views() {
     /*Update all views in all canvases. Always required after a zooming or
     translation action.*/
 
@@ -507,8 +512,8 @@ function update_views(){
     vars.vm.render();
 }
 
-function reset_views(){
-    for (let canvas of document.getElementsByClassName('view-canvas')){
+function reset_views() {
+    for (let canvas of document.getElementsByClassName('view-canvas')) {
         let ctx = canvas.getContext('2d');
         ctx.setTransform(
             ctx.canvas.width / vars.image_shape[0], 0, 0,
@@ -518,7 +523,7 @@ function reset_views(){
     update_views();
 }
 
-function update_cursor_coords(obj, event){
+function update_cursor_coords(obj, event) {
     // Update the current coords to image coordinate system:
     let rect = obj.getBoundingClientRect();
     let x = round_number(
@@ -536,16 +541,16 @@ function update_cursor_coords(obj, event){
     ];
 }
 
-function update_drawn_pixels(){
+function update_drawn_pixels() {
     vars.n_user_pixels = {
         "total": 0
     };
-    for (var i=0; i < vars.classes.length; i++){
+    for (var i = 0; i < vars.classes.length; i++) {
         vars.n_user_pixels[i] = 0;
     }
 
-    for (var i=0; i<vars.user_mask.length; i++){
-        if (vars.user_mask[i]){
+    for (var i = 0; i < vars.user_mask.length; i++) {
+        if (vars.user_mask[i]) {
             vars.n_user_pixels[vars.mask[i]] += 1;
             vars.n_user_pixels.total += 1;
         }
@@ -553,38 +558,38 @@ function update_drawn_pixels(){
     get_object("drawn-pixels").innerHTML = nice_number(vars.n_user_pixels.total);
 
     var different_classes = 0;
-    for (var i=0; i < vars.classes.length; i++){
-        if (vars.n_user_pixels[i] > 10){
+    for (var i = 0; i < vars.classes.length; i++) {
+        if (vars.n_user_pixels[i] > 10) {
             different_classes += 1;
         }
     }
 
     get_object("different-classes").innerHTML = different_classes;
 
-    if (different_classes >= 2){
+    if (different_classes >= 2) {
         get_object("ai-recommendation").innerHTML = "Start the training!";
     } else {
         get_object("ai-recommendation").innerHTML = "Draw at least 10 pixels from two classes!";
     }
 }
 
-function discard_future(){
+function discard_future() {
     // Delete everything ahead the current epoch in the history stack
-    if (vars.history.current_epoch == vars.history.mask.length-1){
+    if (vars.history.current_epoch == vars.history.mask.length - 1) {
         return;
     }
 
-    var start = vars.history.current_epoch+1;
+    var start = vars.history.current_epoch + 1;
     var n_elements = vars.history.mask.length - vars.history.current_epoch
     vars.history.mask.splice(start, n_elements);
     vars.history.user_mask.splice(start, n_elements);
 }
 
-function update_history(){
+function update_history() {
     vars.history.mask.push(vars.mask.slice());
     vars.history.user_mask.push(vars.user_mask.slice());
 
-    if (vars.history.mask.length > vars.history.max_epochs){
+    if (vars.history.mask.length > vars.history.max_epochs) {
         // Remove the oldest timestamp
         vars.history.mask.shift();
         vars.history.user_mask.shift();
@@ -592,8 +597,8 @@ function update_history(){
     vars.history.current_epoch = vars.history.mask.length - 1;
 }
 
-function undo(){
-    if (vars.history.mask.length == 0){
+function undo() {
+    if (vars.history.mask.length == 0) {
         // There is no history saved
         return;
     }
@@ -611,15 +616,15 @@ function undo(){
     render_mask();
 }
 
-function redo(){
-    if (vars.history.mask.length == 0){
+function redo() {
+    if (vars.history.mask.length == 0) {
         // There is no history saved
         return;
     }
 
     vars.history.current_epoch += 1;
     vars.history.current_epoch = Math.min(
-        vars.history.current_epoch, vars.history.mask.length-1
+        vars.history.current_epoch, vars.history.mask.length - 1
     );
 
     vars.mask = vars.history.mask[vars.history.current_epoch].slice();
@@ -630,7 +635,7 @@ function redo(){
     render_mask();
 }
 
-function user_draws_on_mask(){
+function user_draws_on_mask() {
     /*The user draws to the mask
 
     Returns:
@@ -685,28 +690,28 @@ function user_draws_on_mask(){
 
     // Make sure we do not draw outside of the masking area:
     x_start = Math.max(0, x_start);
-    x_end = Math.min(vars.mask_shape[0]-1, x_end);
+    x_end = Math.min(vars.mask_shape[0] - 1, x_end);
     y_start = Math.max(0, y_start);
-    y_end = Math.min(vars.mask_shape[1]-1, y_end);
+    y_end = Math.min(vars.mask_shape[1] - 1, y_end);
 
     for (let x = x_start; x < x_end; x++) {
         for (let y = y_start; y < y_end; y++) {
-            if (vars.tool.type == "eraser"){
-                vars.user_mask[y*vars.mask_shape[0]+x] = 0;
+            if (vars.tool.type == "eraser") {
+                vars.user_mask[y * vars.mask_shape[0] + x] = 0;
             } else {
-                vars.mask[y*vars.mask_shape[0]+x] = vars.current_class;
-                vars.user_mask[y*vars.mask_shape[0]+x] = 1;
+                vars.mask[y * vars.mask_shape[0] + x] = vars.current_class;
+                vars.user_mask[y * vars.mask_shape[0] + x] = 1;
             }
         }
     }
-    drawing_area = [x_start, y_start, x_end-x_start, y_end-y_start];
+    drawing_area = [x_start, y_start, x_end - x_start, y_end - y_start];
 
     // Now we draw on the hidden mask and render it
-    if (vars.mask_type == 'final' || vars.mask_type == 'user'){
+    if (vars.mask_type == 'final' || vars.mask_type == 'user') {
         var hidden_ctx = vars.hidden_mask.getContext('2d');
         hidden_ctx.clearRect(...drawing_area);
 
-        if (vars.tool.type != "eraser"){
+        if (vars.tool.type != "eraser") {
             hidden_ctx.fillStyle = rgba2css(get_current_class_colour());
             hidden_ctx.fillRect(...drawing_area);
         }
@@ -726,7 +731,7 @@ function user_draws_on_mask(){
     vars.show_dialogue_before_next_image = true;
 }
 
-function reload_hidden_mask(){
+function reload_hidden_mask() {
     /*Update hidden mask on a offscreen canvas*/
     let ctx = vars.hidden_mask.getContext('2d');
 
@@ -738,7 +743,7 @@ function reload_hidden_mask(){
     for (var y = 0; y < sprite.height; y++) {
         for (var x = 0; x < sprite.width; x++) {
             let offset = (y * sprite.width + x) * 4;
-            let colour = colours[mask[y*vars.mask_shape[0]+x]];
+            let colour = colours[mask[y * vars.mask_shape[0] + x]];
             sprite.data[offset] = colour[0];
             sprite.data[offset + 1] = colour[1];
             sprite.data[offset + 2] = colour[2];
@@ -751,9 +756,9 @@ function reload_hidden_mask(){
     ctx.putImageData(sprite, 0, 0);
 }
 
-function set_mask_type(type){
-    get_object("tb_mask_"+vars.mask_type).classList.remove("checked");
-    get_object("tb_mask_"+type).classList.add("checked");
+function set_mask_type(type) {
+    get_object("tb_mask_" + vars.mask_type).classList.remove("checked");
+    get_object("tb_mask_" + type).classList.add("checked");
 
     vars.mask_type = type;
 
@@ -762,9 +767,9 @@ function set_mask_type(type){
     show_mask(true);
 }
 
-function get_current_class_colour(){
-    if (vars.mask_type == "user"){
-        if ("user_colour" in vars.classes[vars.current_class]){
+function get_current_class_colour() {
+    if (vars.mask_type == "user") {
+        if ("user_colour" in vars.classes[vars.current_class]) {
             return vars.classes[vars.current_class].user_colour;
         } else {
             return vars.classes[vars.current_class].colour;
@@ -774,27 +779,27 @@ function get_current_class_colour(){
     }
 }
 
-function get_current_mask_and_colours(){
-    if (vars.mask_type == "final"){
+function get_current_mask_and_colours() {
+    if (vars.mask_type == "final") {
         var colours = [];
-        for (var c of vars.classes){
+        for (var c of vars.classes) {
             colours.push(c.colour);
         }
         return [vars.mask, colours]
-    } else if (vars.mask_type == "user"){
+    } else if (vars.mask_type == "user") {
         var colours = [
-            [255, 255, 255,0], // no user pixel
+            [255, 255, 255, 0], // no user pixel
         ];
-        for (var c of vars.classes){
-            if ("user_colour" in c){
+        for (var c of vars.classes) {
+            if ("user_colour" in c) {
                 colours.push(c.user_colour);
             } else {
                 colours.push(c.colour);
             }
         }
         var mask = new Uint8Array(vars.mask.length);
-        for (var i=0; i<mask.length; i++){
-            if (vars.user_mask[i]){
+        for (var i = 0; i < mask.length; i++) {
+            if (vars.user_mask[i]) {
                 mask[i] = vars.mask[i] + 1;
             } else {
                 // User did not draw anything, so keep it transparent:
@@ -803,9 +808,9 @@ function get_current_mask_and_colours(){
         }
 
         return [mask, colours]
-    } else if (vars.mask_type == "errors"){ // error mask
+    } else if (vars.mask_type == "errors") { // error mask
         var colours = [
-            [255, 255, 255,0], // no validation possible
+            [255, 255, 255, 0], // no validation possible
             [0, 255, 0, 70], // correctly predicted
             [255, 70, 70, 255], // wrongly predicted
         ];
@@ -813,7 +818,7 @@ function get_current_mask_and_colours(){
     }
 }
 
-function render_mask(bbox=null){
+function render_mask(bbox = null) {
     /*Draw the mask onto the mask canvases.
 
     Args:
@@ -829,22 +834,22 @@ function render_mask(bbox=null){
     }
 }
 
-function render_preview(){
+function render_preview() {
     for (let layer of vars.vm.getLayers("preview")) {
         layer.render();
     }
 }
 
-function dialogue_reset_mask(){
+function dialogue_reset_mask() {
     var content = "<p>Are you sure you want to reset all your drawn pixels?</p>";
     content += "<button onclick='hide_dialogue();reset_mask();'>Reset</button>";
     content += "<button onclick='hide_dialogue();'>Cancel</button>";
     show_dialogue("warning", content);
 }
 
-function reset_mask(){
-    vars.mask = new Uint8Array(vars.mask_shape[1]*vars.mask_shape[0]);
-    vars.user_mask = new Uint8Array(vars.mask_shape[1]*vars.mask_shape[0]);
+function reset_mask() {
+    vars.mask = new Uint8Array(vars.mask_shape[1] * vars.mask_shape[0]);
+    vars.user_mask = new Uint8Array(vars.mask_shape[1] * vars.mask_shape[0]);
 
     vars.mask.fill(0);
     vars.user_mask.fill(0);
@@ -856,7 +861,7 @@ function reset_mask(){
     vars.show_dialogue_before_next_image = true;
 }
 
-function reset_filters(){
+function reset_filters() {
     vars.vm.filters.brightness = 100;
     vars.vm.filters.saturation = 100;
     set_contrast(false);
@@ -887,60 +892,60 @@ function reset_filters(){
 //     hide_message();
 // }
 
-function show_mask(visible){
+function show_mask(visible) {
     vars.show_mask = visible;
     var state = "none";
-    if (vars.show_mask){
+    if (vars.show_mask) {
         state = "block";
     }
-    for (let layer of vars.vm.getLayers("mask")){
+    for (let layer of vars.vm.getLayers("mask")) {
         layer.container.style.display = state;
     }
 
-    if (vars.show_mask){
+    if (vars.show_mask) {
         get_object("tb_toggle_mask").classList.add("checked");
     } else {
         get_object("tb_toggle_mask").classList.remove("checked");
     }
 }
 
-function login_finished(){
-    fetch_server_update(update_config=true);
+function login_finished() {
+    fetch_server_update(update_config = true);
 }
 
-function logout_finished(){
+function logout_finished() {
     save_mask();
-    goto_url(vars.url.segmentation+'?image_id='+vars.image_id);
+    goto_url(vars.url.segmentation + '?image_id=' + vars.image_id);
 }
 
-async function fetch_server_update(update_config=true){
-    let response = await fetch(vars.url.user+"get/current");
+async function fetch_server_update(update_config = true) {
+    let response = await fetch(vars.url.user + "get/current");
     if (response.status == 403) {
         dialogue_login();
-        vars.just_logged_in=true;
+        vars.just_logged_in = true;
         return;
     }
     let user = await response.json();
 
     // Get more information about the current image:
-    response = await fetch(vars.url.main+"image_info/"+vars.image_id);
+    response = await fetch(vars.url.main + "image_info/" + vars.image_id);
     if (response.status != 404) {
         image = await response.json();
 
         let info_box = '<div class="info-box-top" style="position: relative;">';
         info_box += clip_string(image.id, 20);
         let masks = image.segmentation.count;
-        if (image.segmentation.current_user_score !== null){
+        if (image.segmentation.current_user_score !== null) {
             masks -= 1;
         }
 
-        if (masks != 0){
+        if (masks != 0) {
             let text = '1 other mask';
-            if (masks > 1){
+            if (masks > 1) {
                 text = masks.toString() + ' other masks';
             }
 
-            info_box += '<span style="position: absolute; right: -12px; top: -25px; align-text: right;" class="tag">'+text+'</span>';
+            info_box += '<span style="position: absolute; right: -12px; top: -25px; align-text: right;" class="tag">' + text + '</span>';
         }
         info_box += '</div>';
         info_box += '<div class="info-box-bottom">image</div>';
@@ -951,26 +956,26 @@ async function fetch_server_update(update_config=true){
 
     info_box = '<div class="info-box-top" style="position: relative;">';
     info_box += nice_number(user.segmentation.score);
-    if (image.segmentation.current_user_score !== null){
+    if (image.segmentation.current_user_score !== null) {
         let image_score = image.segmentation.current_user_score;
         let colour = "red";
-        if (image_score > 85){
+        if (image_score > 85) {
             colour = "green";
-        } else if (image_score > 70){
+        } else if (image_score > 70) {
             colour = "";
         }
         image_score = image_score.toString();
-        if (image.segmentation.current_user_score_unverified){
+        if (image.segmentation.current_user_score_unverified) {
             image_score += '?';
         }
-        info_box += '<span style="position: absolute; right: -12px; top: -25px; align-text: right;" class="tag '+colour+'">'+image_score+'</span>';
+        info_box += '<span style="position: absolute; right: -12px; top: -25px; align-text: right;" class="tag ' + colour + '">' + image_score + '</span>';
     }
     info_box += '</div>';
-    info_box += '<div class="info-box-bottom">'+clip_string(user.name, 20)+'</div>';
+    info_box += '<div class="info-box-bottom">' + clip_string(user.name, 20) + '</div>';
     get_object('user-info').innerHTML = info_box;
     vars.user = user;
 
-    if (update_config){
+    if (update_config) {
         vars.config = user.config;
 
         vars.mask_area = vars.config.segmentation.mask_area;
@@ -983,13 +988,13 @@ async function fetch_server_update(update_config=true){
         ];
     }
 
-    if (user.admin){
+    if (user.admin) {
         get_object('admin-button').style.display = "block";
     } else {
         get_object('admin-button').style.display = "none";
     }
 
-    if (vars.next_action !== null){
+    if (vars.next_action !== null) {
         vars.next_action();
         vars.next_action = null;
     }
@@ -998,34 +1003,34 @@ async function fetch_server_update(update_config=true){
     setTimeout(fetch_server_update, 15000);
 }
 
-async function dialogue_image(){
-    let content = '<p><img src="'+vars.url.main+'thumbnail/'+vars.image_id+'?size=256x256" style="display: block; margin-left: auto; margin-right: auto;"/></p>';
+async function dialogue_image() {
+    let content = '<p><img src="' + vars.url.main + 'thumbnail/' + vars.image_id + '?size=256x256" style="display: block; margin-left: auto; margin-right: auto;"/></p>';
     let response = await fetch(
-        vars.url.main+'metadata/'+vars.image_id+'?safe_html=True'
+        vars.url.main + 'metadata/' + vars.image_id + '?safe_html=True'
     );
 
     content += '<div style="float: left;">';
-    if (response.status >= 400){
+    if (response.status >= 400) {
         content += await response.text();
     } else {
         let metadata = await response.json();
         content += '<table>';
 
         // row and col are at the same the id for the row and column class, respectively
-        for (const attribute in metadata){
+        for (const attribute in metadata) {
             content += '<tr>';
-            content += '<td><b>'+attribute+'</b></td>';
+            content += '<td><b>' + attribute + '</b></td>';
 
-            if (attribute == "location"){
+            if (attribute == "location") {
                 let location = metadata[attribute]
-                                .replace('[', '')
-                                .replace(']', '')
-                                .replace(' ', '')
+                    .replace('[', '')
+                    .replace(']', '')
+                    .replace(' ', '')
 
                 content += '<td>' + metadata[attribute];
-                content += ' <a target="_blank" href="https://www.google.com/maps/search/?api=1&query='+location+'">Show on map</a></td>';
+                content += ' <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=' + location + '">Show on map</a></td>';
             } else {
-                content += '<td>'+metadata[attribute]+'</td>';
+                content += '<td>' + metadata[attribute] + '</td>';
             }
 
             content += '</tr>';
@@ -1035,12 +1040,12 @@ async function dialogue_image(){
     content += '</div>';
 
     show_dialogue(
-        "info", content, false, "image: "+vars.image_id
+        "info", content, false, "image: " + vars.image_id
     );
 }
 
-function dialogue_confusion_matrix(){
-    if (vars.confusion_matrix === null){
+function dialogue_confusion_matrix() {
+    if (vars.confusion_matrix === null) {
         show_dialogue(
             "info",
             "You need to train the AI first before you can see a confusion matrix",
@@ -1052,18 +1057,18 @@ function dialogue_confusion_matrix(){
     let content = '<table class="confusion-matrix" style="float: left;">';
     content += '<tr class="first"><td class="upper-left">Real / Prediction</td>';
 
-    for (let col_class of vars.classes){
-        content += '<td class="first">'+col_class.name+'</td>';
+    for (let col_class of vars.classes) {
+        content += '<td class="first">' + col_class.name + '</td>';
     }
 
     content += '</tr>';
 
     // row and col are at the same the id for the row and column class, respectively
-    for (var row=0; row<vars.classes.length; row++){
+    for (var row = 0; row < vars.classes.length; row++) {
         content += '<tr>';
-        content += '<td class="first">'+vars.classes[row].name+'</td>';
-        for (var col=0; col<vars.classes.length; col++){
-            content += '<td>'+nice_number(vars.confusion_matrix[row][col])+'</td>';
+        content += '<td class="first">' + vars.classes[row].name + '</td>';
+        for (var col = 0; col < vars.classes.length; col++) {
+            content += '<td>' + nice_number(vars.confusion_matrix[row][col]) + '</td>';
         }
         content += '</tr>';
     }
@@ -1072,19 +1077,19 @@ function dialogue_confusion_matrix(){
     show_dialogue("info", content, false, "Confusion Matrix");
 }
 
-function dialogue_class_selection(){
+function dialogue_class_selection() {
     var content = "<p>Here is an overview about all classes:</p>";
     content += "<table>";
     content += "<th><td>Drawn pixels by user</td><td>Description</td></th>";
 
-    for (var i=0; i<vars.classes.length; i++){
+    for (var i = 0; i < vars.classes.length; i++) {
         var c = vars.classes[i]
         content += "<tr>";
-        content += "<td><button style='background-color: "+rgba2css(c.colour)+"; width: 100%;' ";
-        content += "onclick='set_current_class("+i+"); hide_dialogue();'>";
-        content += c.name+"</button></td>";
-        content += "<td style='text-align: center;'>"+vars.n_user_pixels[i]+"</td>";
-        content += "<td>"+c.description+"</td>";
+        content += "<td><button style='background-color: " + rgba2css(c.colour) + "; width: 100%;' ";
+        content += "onclick='set_current_class(" + i + "); hide_dialogue();'>";
+        content += c.name + "</button></td>";
+        content += "<td style='text-align: center;'>" + vars.n_user_pixels[i] + "</td>";
+        content += "<td>" + c.description + "</td>";
         content += "</tr>";
     }
 
@@ -1093,31 +1098,58 @@ function dialogue_class_selection(){
     show_dialogue("info", content, false, "Class selection");
 }
 
-async function dialogue_help(){
+async function dialogue_help() {
     let hotkeys = {};
 
-    for (command of Object.values(commands)){
-        if ("key" in command){
+    for (command of Object.values(commands)) {
+        if ("key" in command) {
             hotkeys[command.key] = command.description;
         }
     }
     let response = await fetch(
         vars.url.help, {
-            method: "POST",
-            body: JSON.stringify({
-                "hotkeys": hotkeys
-            })
-        }
+        method: "POST",
+        body: JSON.stringify({
+            "hotkeys": hotkeys
+        })
+    }
     );
     let content = await response.text();
-    show_dialogue("info", content, false, title="Help");
+    show_dialogue("info", content, false, title = "Help");
 }
 
-async function load_mask(){
+async function download_mask() {
+    show_loader("Downloading mask...");
+    var results = await download(
+        vars.url.segmentation + "download_mask/" + vars.image_id
+    );
+    hide_loader();
+    if (results.response.status != 200) {
+        let error = await results.response.text();
+        show_dialogue(
+            "error",
+            "Could not download the mask from the server!\n" + error
+        );
+        return;
+    }
+    var blob = new Blob([results.data], { type: "application/octet-stream" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = vars.image_id + "_mask.npy";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    show_message("Mask downloaded successfully!");
+
+}
+
+async function load_mask() {
     show_loader("Loading masks...");
 
     var results = await download(
-        vars.url.segmentation+"load_mask/" + vars.image_id
+        vars.url.segmentation + "load_mask/" + vars.image_id
     );
 
     if (results.response.status != 200 && results.response.status != 404) {
@@ -1131,16 +1163,16 @@ async function load_mask(){
         return;
     }
 
-    var mask_length = vars.mask_shape[1]*vars.mask_shape[0];
+    var mask_length = vars.mask_shape[1] * vars.mask_shape[0];
     vars.mask = new Uint8Array(mask_length);
     vars.user_mask = new Uint8Array(mask_length);
     vars.errors_mask = new Uint8Array(mask_length);
     vars.errors_mask.fill(0);
 
-    if (results.response.status == 200){
+    if (results.response.status == 200) {
         var data = results.data;
-        vars.mask = data.slice(1, mask_length+1);
-        vars.user_mask = data.slice(mask_length+1, 2*mask_length+1);
+        vars.mask = data.slice(1, mask_length + 1);
+        vars.user_mask = data.slice(mask_length + 1, 2 * mask_length + 1);
     } else if (results.response.status == 404) {
         // Just use the default mask
         vars.mask.fill(0);
@@ -1158,14 +1190,14 @@ async function load_mask(){
     update_history();
 }
 
-async function download(url, init=null, html_object=null){
-    if (init === null){
+async function download(url, init = null, html_object = null) {
+    if (init === null) {
         var response = await fetch(url);
     } else {
         var response = await fetch(url, init);
     }
 
-    if (response.status >= 400){
+    if (response.status >= 400) {
         if (response.status == 403) {
             dialogue_login();
         }
@@ -1177,7 +1209,7 @@ async function download(url, init=null, html_object=null){
 
     let header = response.headers.get("content-type");
     let data;
-    if (header == "application/octet-stream"){
+    if (header == "application/octet-stream") {
         const reader = response.body.getReader();
         let result = await reader.read();
         let received_bytes = 0;
@@ -1195,9 +1227,9 @@ async function download(url, init=null, html_object=null){
 
         data = new Uint8Array(received_bytes);
         let position = 0;
-        for(let chunk of chunks) {
-          data.set(chunk, position); // (4.2)
-          position += chunk.length;
+        for (let chunk of chunks) {
+            data.set(chunk, position); // (4.2)
+            position += chunk.length;
         }
     } else {
         data = await response.json();
@@ -1209,26 +1241,26 @@ async function download(url, init=null, html_object=null){
     };
 }
 
-async function dialogue_before_next_image(){
-    if (!vars.show_dialogue_before_next_image){
+async function dialogue_before_next_image() {
+    if (!vars.show_dialogue_before_next_image) {
         return;
     }
 
     show_loader("Making some checks...")
     let response = await fetch(`${vars.url.main}get_action_info/${vars.image_id}/segmentation`);
-    if (response.status >= 400){
+    if (response.status >= 400) {
         // Continue without any dialogue
-        vars.show_dialogue_before_next_image=false;
+        vars.show_dialogue_before_next_image = false;
         next_image();
         return;
     }
     var action = await response.json();
-    var difficulty_labels=['very easy', 'easy', 'okay', 'difficult', 'very difficult'];
+    var difficulty_labels = ['very easy', 'easy', 'okay', 'difficult', 'very difficult'];
 
     var content = `
     <p>How difficult was it to create this mask?</p>
     <div class="slider">
-        <div class="slider-value">${difficulty_labels[action.difficulty-1]}</div>
+        <div class="slider-value">${difficulty_labels[action.difficulty - 1]}</div>
         <input
             class="slider-widget"
             id="dbni-difficulty"
@@ -1247,8 +1279,8 @@ async function dialogue_before_next_image(){
     show_dialogue("info", content, true, "Before you continue...");
 }
 
-function dialogue_before_next_image_save_and_continue(action_id){
-    vars.show_dialogue_before_next_image=false;
+function dialogue_before_next_image_save_and_continue(action_id) {
+    vars.show_dialogue_before_next_image = false;
 
     action_info = {
         "complete": get_object('dbni-complete_action').checked,
@@ -1256,7 +1288,7 @@ function dialogue_before_next_image_save_and_continue(action_id){
         "notes": get_object('dbni-notes').value
     }
 
-    console.log('action',action_info.complete)
+    console.log('action', action_info.complete)
 
     fetch(`${vars.url.main}set_action_info/${action_id}`, {
         method: "POST",
@@ -1266,46 +1298,46 @@ function dialogue_before_next_image_save_and_continue(action_id){
     next_image();
 }
 
-function save_mask(call_afterwards=null){
+function save_mask(call_afterwards = null) {
     show_message('Saving mask...');
     // Do not save any masks if they have not been loaded yet
     let abort_save = false;
     if (vars.mask === null
         || vars.user_mask === null
         || vars.n_user_pixels.total == 0
-    ){
-        if(call_afterwards !== null){
-          call_afterwards();
+    ) {
+        if (call_afterwards !== null) {
+            call_afterwards();
         }
         return;
     }
 
     // Combine both masks together to one byte array only with padding magic
     // numbers 254 to make sure the transaction was done successfully
-    var m_length = vars.mask_shape[0]*vars.mask_shape[1];
-    var data = new Uint8Array(2*m_length+2);
+    var m_length = vars.mask_shape[0] * vars.mask_shape[1];
+    var data = new Uint8Array(2 * m_length + 2);
     var padding = new Uint8Array([254]);
     data.set(padding);
     data.set(vars.mask, 1);
-    data.set(vars.user_mask, m_length+1);
-    data.set(padding, 2*m_length+1);
+    data.set(vars.user_mask, m_length + 1);
+    data.set(padding, 2 * m_length + 1);
 
-    fetch(vars.url.segmentation+"save_mask/" + vars.image_id, {
+    fetch(vars.url.segmentation + "save_mask/" + vars.image_id, {
         method: "POST",
         body: data,
         headers: {
             "Content-Type": "application/octet-stream"
         }
-    }).then((response) => {save_mask_finished(response, call_afterwards);});
+    }).then((response) => { save_mask_finished(response, call_afterwards); });
 }
 
-async function save_mask_finished(response, call_afterwards){
+async function save_mask_finished(response, call_afterwards) {
     fetch_server_update();
 
     if (response.status === 200) {
         show_message('Mask saved', 1000);
-        if(call_afterwards !== null){
-          call_afterwards();
+        if (call_afterwards !== null) {
+            call_afterwards();
         }
     } else {
         let error = await response.text();
@@ -1316,14 +1348,14 @@ async function save_mask_finished(response, call_afterwards){
     }
 }
 
-async function predict_mask(){
+async function predict_mask() {
     var user_classes = [];
-    for (var i=0; i < vars.classes.length; i++){
-        if (vars.n_user_pixels[i] > 10){
+    for (var i = 0; i < vars.classes.length; i++) {
+        if (vars.n_user_pixels[i] > 10) {
             user_classes.push(i);
         }
     }
-    if (user_classes.length < 2){
+    if (user_classes.length < 2) {
         // This means there is only one class with enough training pixels:
         show_dialogue(
             "warning", "You need to draw at least 10 pixels for more than one class to use the AI."
@@ -1336,9 +1368,9 @@ async function predict_mask(){
     // Get all the user pixels
     let all_user_pixels = new Array();
     let all_user_labels = new Array();
-    for (var i=0; i<=vars.user_mask.length; i++){
+    for (var i = 0; i <= vars.user_mask.length; i++) {
         // Only add the user pixel if there are enough pixels from that class:
-        if (vars.user_mask[i] && vars.n_user_pixels[vars.mask[i]] > 10){
+        if (vars.user_mask[i] && vars.n_user_pixels[vars.mask[i]] > 10) {
             all_user_pixels.push(i);
             all_user_labels.push(vars.mask[i]);
         }
@@ -1353,12 +1385,12 @@ async function predict_mask(){
     // Furthermore, we keep also a ratio of pixels as testing dataset:
     let n_samples = {};
     let test_n_samples = {};
-    for (let user_class of user_classes){
+    for (let user_class of user_classes) {
         // Set the current number of samples (0) and the maximum
         n_samples[user_class] = {
             "current": 0,
             "max": Math.min(
-                round_number(vars.n_user_pixels[user_class]*vars.config.segmentation.ai_model.train_ratio),
+                round_number(vars.n_user_pixels[user_class] * vars.config.segmentation.ai_model.train_ratio),
                 vars.config.segmentation.ai_model.max_train_pixels
             )
         };
@@ -1375,9 +1407,9 @@ async function predict_mask(){
     let train_user_labels = new Array();
     let test_user_pixels = new Array();
     let test_user_labels = new Array();
-    for (let i of all_indices){
+    for (let i of all_indices) {
         let class_id = all_user_labels[i];
-        if (n_samples[class_id].current < n_samples[class_id].max){
+        if (n_samples[class_id].current < n_samples[class_id].max) {
             train_user_pixels.push(all_user_pixels[i]);
             train_user_labels.push(class_id);
             n_samples[class_id].current += 1;
@@ -1391,15 +1423,15 @@ async function predict_mask(){
 
     show_loader("Train AI...");
     let results = await download(
-            vars.url.segmentation+"predict_mask/" + vars.image_id,
-            {
-                method: "POST",
-                body: JSON.stringify({
-                    "user_pixels": train_user_pixels,
-                    "user_labels": train_user_labels
-                })
-            }
-        );
+        vars.url.segmentation + "predict_mask/" + vars.image_id,
+        {
+            method: "POST",
+            body: JSON.stringify({
+                "user_pixels": train_user_pixels,
+                "user_labels": train_user_labels
+            })
+        }
+    );
 
     show_loader("Process results...");
     if (results.response.status >= 500) {
@@ -1420,14 +1452,14 @@ async function predict_mask(){
     vars.errors_mask.fill(0);
 
     let tp = {};
-    for (let user_class of user_classes){
+    for (let user_class of user_classes) {
         tp[user_class] = 0;
     }
-    
-    for (let i of test_indices){
+
+    for (let i of test_indices) {
         let mask_index = all_user_pixels[i];
         cm[all_user_labels[i]][results.data[mask_index]] += 1;
-        if (all_user_labels[i] == results.data[mask_index]){
+        if (all_user_labels[i] == results.data[mask_index]) {
             tp[all_user_labels[i]] += 1;
 
             // Correct:
@@ -1439,7 +1471,7 @@ async function predict_mask(){
     }
     let acc_prod = user_classes.length;
     let acc_sum = 0;
-    for (let label of user_classes){
+    for (let label of user_classes) {
         let acc = tp[label] / test_n_samples[label].current;
         acc_prod *= acc;
         acc_sum += acc;
@@ -1452,7 +1484,7 @@ async function predict_mask(){
 
     for (var i = 0; i < results.data.length; i++) {
         // Only update the mask where the user did not draw to.
-        if (!vars.user_mask[i]){
+        if (!vars.user_mask[i]) {
             vars.mask[i] = results.data[i];
         }
     }
@@ -1472,23 +1504,23 @@ async function predict_mask(){
 
 
 
-function update_ai_box(score, cm, tp, user_classes){
-    get_object("ai-score").innerHTML = round_number(score*100) + "%";
+function update_ai_box(score, cm, tp, user_classes) {
+    get_object("ai-score").innerHTML = round_number(score * 100) + "%";
 
     let recommendation = "Draw more training pixels!";
 
     let min_acc = 1;
     let worst_label = null;
 
-    for (let label of user_classes){
+    for (let label of user_classes) {
         let acc = tp[label] / (vars.n_user_pixels[label]);
-        if (acc < min_acc){
+        if (acc < min_acc) {
             min_acc = acc;
             worst_label = label;
         }
     }
-    if (worst_label !== null){
-        recommendation = "Could you provide more training pixels for <b>"+vars.classes[worst_label].name+"</b>?";
+    if (worst_label !== null) {
+        recommendation = "Could you provide more training pixels for <b>" + vars.classes[worst_label].name + "</b>?";
     }
 
     get_object("ai-recommendation").innerHTML = recommendation;
