@@ -236,6 +236,26 @@ def load_mask(image_id):
     except:
         return flask.make_response("No user mask available!", 404)
 
+@segmentation_app.route('/download_mask/<image_id>', methods=['GET'])
+@requires_auth
+def download_user_mask_file(image_id):
+    """Return the user mask file for the given image and user
+    for them to download it."""
+    user_id = flask.session.get('user_id')
+
+    final_mask_file, user_mask_file = get_mask_filenames(image_id, user_id)
+
+    if not exists(final_mask_file) or not exists(user_mask_file):
+        return flask.make_response("No user mask available!", 404)
+
+    # Return the user mask file:
+    response = flask.make_response(
+        open(user_mask_file, 'rb').read()
+    )
+    response.headers.set('Content-Type', 'application/octet-stream')
+    response.headers.set('Content-Disposition', f'attachment; filename={user_id}_mask.npy')
+    return response    
+
 @segmentation_app.route('/save_mask/<image_id>', methods=['POST'])
 @requires_auth
 def save_mask(image_id):
