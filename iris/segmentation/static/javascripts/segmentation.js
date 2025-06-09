@@ -937,6 +937,8 @@ async function fetch_server_update(update_config = true) {
         let masks = image.segmentation.count;
         if (image.segmentation.current_user_score !== null) {
             masks -= 1;
+            // Mask must previously have been saved so show download button
+            get_object('tb_download_mask').style.display = "inline-block";
         }
 
         if (masks != 0) {
@@ -1336,6 +1338,9 @@ async function save_mask_finished(response, call_afterwards) {
 
     if (response.status === 200) {
         show_message('Mask saved', 1000);
+        // show download button
+        get_object("tb_download_mask").style.display = "inline-block";
+
         if (call_afterwards !== null) {
             call_afterwards();
         }
