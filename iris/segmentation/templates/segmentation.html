@@ -75,6 +75,9 @@
         <li class="toolbutton icon_button" id='tb_save_mask' onclick="save_mask();">
             <img src={{url_for('segmentation.static', filename='icons/save_mask.png')}} class="icon" />
         </li>
+        <li class="toolbutton icon_button" id='tb_download_mask' onclick="download_mask();">
+            <img src={{url_for('segmentation.static', filename='icons/download.png')}} class="icon" />
+        </li>
         <li class="toolbutton icon_button" id='tb_undo' onclick="undo();">
             <img src={{url_for('segmentation.static', filename='icons/undo.png')}} class="icon" />
         </li>
@@ -153,9 +156,6 @@
         </li>
         <li class="toolbutton icon_button" onclick="dialogue_config();">
             <img src={{url_for('segmentation.static', filename='icons/preferences.png')}} class="icon" />
-        </li>
-        <li class="toolbutton icon_button" onclick="download_mask();">
-            <img src={{url_for('segmentation.static', filename='icons/save_mask.png')}} class="icon" />
         </li>
     </ul>
 
