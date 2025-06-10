@@ -1138,7 +1138,7 @@ async function download_mask() {
     var url = URL.createObjectURL(blob);
     var a = document.createElement("a");
     a.href = url;
-    a.download = vars.image_id + "_mask.npy";
+    a.download = vars.image_id + "_mask.tif";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

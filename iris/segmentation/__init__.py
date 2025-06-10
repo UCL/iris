@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from glob import glob
+import io
 import json
 import os
 from os.path import basename, dirname, exists, join
@@ -9,6 +10,8 @@ from pprint import pprint
 import lightgbm as lgb
 import flask
 import numpy as np
+import rasterio as rio
+from rasterio.io import MemoryFile
 from scipy.ndimage import convolve, minimum_filter, maximum_filter
 from skimage.io import imread, imsave
 from skimage.filters import sobel
@@ -247,14 +250,35 @@ def download_user_mask_file(image_id):
 
     if not exists(final_mask_file) or not exists(user_mask_file):
         return flask.make_response("No user mask available!", 404)
-
-    # Return the user mask file:
-    response = flask.make_response(
-        open(user_mask_file, 'rb').read()
-    )
+    
+    # Open the final mask numpy file and convert it to a geotiff file using the 
+    # original image metadata:
+    final_mask = np.load(final_mask_file)
+    src_img_path = project.get_image_path(image_id)
+    # src_img_path can be a dict or a string, take the first one if it's a dict
+    if isinstance(src_img_path, dict):
+        src_img_path = next(iter(src_img_path.values()))
+    # Open source image to get metadata
+    with rio.open(src_img_path, 'r') as src:
+        # Create a new in-memory raster file with the same but updated metadata
+        profile = src.profile.copy()
+        profile.update({
+            "count": final_mask.shape[-1],  # Number of classes in the mask
+            "height": final_mask.shape[0],
+            "width": final_mask.shape[1],
+        })
+        with MemoryFile() as memfile:
+            with memfile.open(**profile) as dst:
+                for i in range(final_mask.shape[-1]):
+                    # Write each class layer to the raster file
+                    dst.write_band(i + 1, final_mask[..., i])
+            # Now we can send the file to the user
+            final_mask_file = memfile.read()
+    # return the in-memory file as a response
+    response = flask.send_file(io.BytesIO(final_mask_file), as_attachment=True, download_name=f'{user_id}_mask.tif')
     response.headers.set('Content-Type', 'application/octet-stream')
-    response.headers.set('Content-Disposition', f'attachment; filename={user_id}_mask.npy')
-    return response    
+
+    return response
 
 @segmentation_app.route('/save_mask/<image_id>', methods=['POST'])
 @requires_auth
