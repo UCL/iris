@@ -106,7 +106,7 @@ let commands = {
         "key": "B",
         "description": "Switch to next group view"
     },
-    "download_mask": {
+    "download_final_mask": {
         "key": "M",
         "description": "Download the current mask as npy file"
     },
@@ -938,7 +938,7 @@ async function fetch_server_update(update_config = true) {
         if (image.segmentation.current_user_score !== null) {
             masks -= 1;
             // Mask must previously have been saved so show download button
-            get_object('tb_download_mask').style.display = "inline-block";
+            get_object('tb_download_final_mask').style.display = "inline-block";
         }
 
         if (masks != 0) {
@@ -1118,33 +1118,6 @@ async function dialogue_help() {
     );
     let content = await response.text();
     show_dialogue("info", content, false, title = "Help");
-}
-
-async function download_mask() {
-    show_loader("Downloading mask...");
-    var results = await download(
-        vars.url.segmentation + "download_mask/" + vars.image_id
-    );
-    hide_loader();
-    if (results.response.status != 200) {
-        let error = await results.response.text();
-        show_dialogue(
-            "error",
-            "Could not download the mask from the server!\n" + error
-        );
-        return;
-    }
-    var blob = new Blob([results.data], { type: "application/octet-stream" });
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement("a");
-    a.href = url;
-    a.download = vars.image_id + "_mask.tif";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    show_message("Mask downloaded successfully!");
-
 }
 
 async function load_mask() {
@@ -1339,7 +1312,7 @@ async function save_mask_finished(response, call_afterwards) {
     if (response.status === 200) {
         show_message('Mask saved', 1000);
         // show download button
-        get_object("tb_download_mask").style.display = "inline-block";
+        get_object("tb_download_final_mask").style.display = "inline-block";
 
         if (call_afterwards !== null) {
             call_afterwards();
