@@ -239,6 +239,86 @@ def load_mask(image_id):
     except:
         return flask.make_response("No user mask available!", 404)
 
+
+def align_mask_to_input(mask_file, input_file):
+    """
+    Takes a mask file (user or final) and aligns it's filetype and, if relevant, it's
+    geographic metadata to the input file. Currently, only GeoTIFF files have their geographic
+    metadata aligned, other file types are just copied, without metadata.
+
+    Args:
+        mask_file (str): Path to the mask file.
+        input_file (str): Path to the input file.
+
+    Returns:
+        file: A file-like object containing the aligned mask data.
+        str: The file type of the mask file.
+    """
+
+    file_type = os.path.splitext(input_file)[-1].lower()
+    if file_type not in ['.tif', '.png', '.jpg', '.jpeg', '.npy']:
+        Warning(
+            f"Unsupported file type {file_type} for mask file. Downloading current file without alignment."
+        )
+        # Ensure two values are returned as expected by the caller
+        return open(mask_file, 'rb'), file_type
+
+    mask_arr = np.load(mask_file)
+
+    if file_type in ['.tif']:
+
+        # If the mask is a GeoTIFF, we need to align its metadata with the input file
+
+        # 1. Open the mask file to read its metadata
+        with rio.open(input_file, 'r') as input_src:
+            profile = input_src.profile.copy()
+            transform = input_src.transform
+
+        # 2. Calculate mask's geographic extent based on project config
+        mask_area = project.config['segmentation']['mask_area'] # [xmin, ymin, xmax, ymax] pixel-space
+
+        # Calculate geographic coordinates from pixel coordinates, and other metadata
+        xmin, ymin = transform * (mask_area[0], mask_area[1])
+        xmax, ymax = transform * (mask_area[2], mask_area[3])
+
+        width = mask_area[2] - mask_area[0]
+        height = mask_area[3] - mask_area[1]
+        count = len(project.config['classes'])  # Number of classes in the mask
+        dtype = rio.uint8  # Assuming for now the mask is stored as uint8
+
+        # 3. Update the profile with the new geographic extent
+        profile.update({
+            # This is the way we get the mask's geographic position within the original image's
+            "transform": rio.Affine(
+                (xmax - xmin) / width, 0, xmin,
+                0, (ymax - ymin) / height, ymin
+            ),
+            "crs": input_src.crs,
+            "driver": 'GTiff',
+            "count": count,  # Number of bands in the mask
+            "height": height,
+            "width": width,
+            "dtype": dtype,
+        })
+
+        # 4. Create an in-memory file to write the aligned mask
+        with MemoryFile() as memfile:
+            with memfile.open(**profile) as dst:
+                # Write each class layer to the raster file
+                for i in range(mask_arr.shape[-1]):
+                    dst.write_band(i + 1, mask_arr[..., i])
+
+            # Read the in-memory file to return it as a BytesIO stream
+            aligned_mask_file = io.BytesIO(memfile.read())
+
+    else:
+        # For now, all other types are just copied as numpy arrays
+        aligned_mask_file = io.BytesIO()
+        np.save(aligned_mask_file, mask_arr, allow_pickle=False)
+        aligned_mask_file.seek(0)  # Reset the pointer to the beginning of the file
+    return aligned_mask_file, file_type
+
+
 @segmentation_app.route('/download_final_mask/<image_id>', methods=['GET'])
 @requires_auth
 def download_final_mask(image_id):
@@ -246,36 +326,17 @@ def download_final_mask(image_id):
     for them to download it."""
     user_id = flask.session.get('user_id')
 
-    final_mask_file, user_mask_file = get_mask_filenames(image_id, user_id)
+    final_mask_path, user_mask_path = get_mask_filenames(image_id, user_id)
 
-    if not exists(final_mask_file) or not exists(user_mask_file):
+    if not exists(final_mask_path) or not exists(user_mask_path):
         return flask.make_response("No user mask available!", 404)
-    
-    # Open the final mask numpy file and convert it to a geotiff file using the 
-    # original image metadata:
-    final_mask = np.load(final_mask_file)
-    src_img_path = project.get_image_path(image_id)
-    # src_img_path can be a dict or a string, take the first one if it's a dict
-    if isinstance(src_img_path, dict):
-        src_img_path = next(iter(src_img_path.values()))
-    # Open source image to get metadata
-    with rio.open(src_img_path, 'r') as src:
-        # Create a new in-memory raster file with the same but updated metadata
-        profile = src.profile.copy()
-        profile.update({
-            "count": final_mask.shape[-1],  # Number of classes in the mask
-            "height": final_mask.shape[0],
-            "width": final_mask.shape[1],
-        })
-        with MemoryFile() as memfile:
-            with memfile.open(**profile) as dst:
-                for i in range(final_mask.shape[-1]):
-                    # Write each class layer to the raster file
-                    dst.write_band(i + 1, final_mask[..., i])
-            # Now we can send the file to the user
-            final_mask_file = memfile.read()
-    # return the in-memory file as a response
-    response = flask.send_file(io.BytesIO(final_mask_file), as_attachment=True, download_name=f'{user_id}_mask.tif')
+    input_path = project.get_image_path(image_id)
+    if isinstance(input_path, dict):
+        # TODO: Handle cases where different inputs have different file types
+        input_path = list(input_path.values())[0]
+
+    final_mask_file, ext = align_mask_to_input(final_mask_path, input_path)
+    response = flask.send_file(final_mask_file, as_attachment=True, download_name=f'{image_id}_{user_id}_mask{ext}')
     response.headers.set('Content-Type', 'application/octet-stream')
 
     return response
