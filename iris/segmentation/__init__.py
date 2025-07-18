@@ -109,7 +109,7 @@ def read_masks(image_id, user_id):
     user_mask = np.load(user_mask_file)
     return final_mask, user_mask
 
-def merge_masks(image_id):
+def merge_masks(image_id, npy=False):
     """Combine the masks of all users to a resulting mask"""
     final_mask_paths = get_mask_filenames(image_id, user_id="*")[0]
     users, final_masks = zip(*[
@@ -132,7 +132,7 @@ def merge_masks(image_id):
             # etc. to weight their mask
             class_votes[final_masks[..., u] == klass, i] += 1
 
-    # Create the final mask out of the elements occuring the most often:
+    # Create the final mask out of the elements occurring the most often:
     winner_indices = np.argmax(class_votes, axis=-1)
 
     # Retranslate to original classes (we initialised class_votes not with the
@@ -165,7 +165,10 @@ def merge_masks(image_id):
     merged_mask = encode_mask(
         merged_mask, mode=project['segmentation']['mask_encoding']
     )
-    filename = project['segmentation']['path'].format(id=image_id)
+    if npy:
+        filename = join(project['path'], 'segmentation', image_id, 'combined_final.npy')
+    else:
+        filename = project['segmentation']['path'].format(id=image_id)
     os.makedirs(dirname(filename), exist_ok=True)
     if filename.endswith('npy'):
         np.save(filename, merged_mask, allow_pickle=False)
