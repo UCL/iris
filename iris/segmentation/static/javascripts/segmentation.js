@@ -63,8 +63,12 @@ let commands = {
         "key": "G",
         "description": "Show your drawn pixels only"
     },
-    "mask_errors": {
+    "mask_combined": {
         "key": "H",
+        "description": "Show the final combined mask from all users"
+    },
+    "mask_errors": {
+        "key": "J",
         "description": "Show where the AI failed to predict correctly"
     },
     // "mask_highlight_edges": {
@@ -257,6 +261,8 @@ function key_down(event) {
     } else if (key == "KeyG") {
         set_mask_type("user");
     } else if (key == "KeyH") {
+        set_mask_type("combined");
+    } else if (key == "KeyJ") {
         set_mask_type("errors");
     } else if (key.startsWith("Digit") || key.startsWith("Numpad")) {
         // Why do we subtract 1 from this? The class ids start with 0, so we
@@ -994,6 +1000,7 @@ async function fetch_server_update(update_config = true) {
         get_object('admin-button').style.display = "block";
     } else {
         get_object('admin-button').style.display = "none";
+        get_object('tb_mask_combined').style.display = "none";
     }
 
     if (vars.next_action !== null) {
