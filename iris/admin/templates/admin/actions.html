@@ -13,7 +13,10 @@
     function update_page(){
         let order_by = document.getElementById('order_by');
         let ascending = document.getElementById('ascending');
-        goto_url(`${vars.url.admin}actions/{{action_type}}?order_by=${order_by.value}&ascending=${ascending.checked}`);
+        goto_url(`${vars.url.admin}actions/{{action_type}}?order_by=${order_by.value}&ascending=${ascending.checked}&combine_masks=false`);
+    }
+    function update_combined_mask(){
+        goto_url(`${vars.url.admin}actions/{{action_type}}?combine_masks=true`);
     }
 </script>
 
@@ -64,3 +67,6 @@
         </tr>
     {% endfor %}
 </table>
+
+<p></p>
+<button title="Combine all final masks for each image" onclick="update_combined_mask();"> Combine Final Masks </button>
