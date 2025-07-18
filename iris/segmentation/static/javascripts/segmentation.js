@@ -792,6 +792,12 @@ function get_current_mask_and_colours() {
             colours.push(c.colour);
         }
         return [vars.mask, colours]
+    } else if (vars.mask_type == "combined") {  // FIXME
+        var colours = [];
+        for (var c of vars.classes) {
+            colours.push(c.colour);
+        }
+        return [vars.combined_mask, colours]
     } else if (vars.mask_type == "user") {
         var colours = [
             [255, 255, 255, 0], // no user pixel
@@ -812,7 +818,6 @@ function get_current_mask_and_colours() {
                 mask[i] = 0;
             }
         }
-
         return [mask, colours]
     } else if (vars.mask_type == "errors") { // error mask
         var colours = [
@@ -1145,9 +1150,25 @@ async function load_mask() {
         return;
     }
 
+    var combined_results = await download(
+        vars.url.segmentation + "load_combined_mask/" + vars.image_id
+    );
+
+    if (combined_results.response.status != 200 && combined_results.response.status != 404) {
+        hide_loader();
+
+        let error = await combined_results.response.text();
+        show_dialogue(
+            "error",
+            "Could not load the mask from the server!\n" + error
+        );
+        return;
+    }
+
     var mask_length = vars.mask_shape[1] * vars.mask_shape[0];
     vars.mask = new Uint8Array(mask_length);
     vars.user_mask = new Uint8Array(mask_length);
+    vars.combined_mask = new Uint8Array(mask_length);
     vars.errors_mask = new Uint8Array(mask_length);
     vars.errors_mask.fill(0);
 
@@ -1159,6 +1180,12 @@ async function load_mask() {
         // Just use the default mask
         vars.mask.fill(0);
         vars.user_mask.fill(0);
+    }
+
+    if (combined_results.response.status == 200) {
+        vars.combined_mask = combined_results.data.slice(1, mask_length + 1);
+    } else if (combined_results.response.status == 404) {
+        vars.combined_mask.fill(0);
     }
 
     set_mask_type(vars.mask_type);

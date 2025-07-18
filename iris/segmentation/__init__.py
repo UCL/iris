@@ -243,6 +243,27 @@ def load_mask(image_id):
         return flask.make_response("No user mask available!", 404)
 
 
+@segmentation_app.route('/load_combined_mask/<image_id>')
+@requires_auth
+def load_combined_mask(image_id):
+
+    try:
+        combined_mask_file = join(project['path'], 'segmentation', image_id, 'combined_final.npy')
+        combined_mask = np.load(combined_mask_file)
+        combined_mask = np.argmax(combined_mask, axis=-1)
+
+        data = combined_mask.ravel()
+        data = np.pad(data, 1, constant_values=(254, 254))
+
+        response = flask.make_response(
+            data.astype(np.uint8).tobytes()
+        )
+        response.headers.set('Content-Type', 'application/octet-stream')
+        return response
+    except:
+        return flask.make_response("No combined mask available!", 404)
+
+
 def align_mask_to_input(mask_file, input_file):
     """
     Takes a mask file (user or final) and aligns it's filetype and, if relevant, it's
