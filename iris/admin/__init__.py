@@ -65,9 +65,10 @@ def actions(type):
     else:
         actions = actions.order_by(getattr(Action, order_by).desc()).all()
 
-    if combine_masks:
-        for i in set(action.image_id for action in actions):
-            merge_masks(i, npy=True)
+    # call merge masks for each unique segmentation image
+    if combine_masks and type == 'segmentation':
+        for id in set(action.image_id for action in actions):
+            merge_masks(id, npy=True)
         combine_masks = False
 
     actions_json = [

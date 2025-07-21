@@ -166,7 +166,7 @@ def merge_masks(image_id, npy=False):
         merged_mask, mode=project['segmentation']['mask_encoding']
     )
     if npy:
-        filename = join(project['path'], 'segmentation', image_id, 'combined_final.npy')
+        filename = join(project['path'], 'segmentation', image_id, 'final_combined.npy')
     else:
         filename = project['segmentation']['path'].format(id=image_id)
     os.makedirs(dirname(filename), exist_ok=True)
@@ -248,7 +248,7 @@ def load_mask(image_id):
 def load_combined_mask(image_id):
 
     try:
-        combined_mask_file = join(project['path'], 'segmentation', image_id, 'combined_final.npy')
+        combined_mask_file = join(project['path'], 'segmentation', image_id, 'final_combined.npy')
         combined_mask = np.load(combined_mask_file)
         combined_mask = np.argmax(combined_mask, axis=-1)
 
