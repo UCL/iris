@@ -1,0 +1,89 @@
+{
+  "name": "test-contrast-windowing",
+  "images": {
+    "path": "images/{id}.png",
+    "shape": [
+      256,
+      256
+    ],
+    "thumbnails": "images/{id}_thumb.png",
+    "metadata": "images/{id}_metadata.json"
+  },
+  "segmentation": {
+    "path": "masks/{id}.png",
+    "mask_encoding": "rgb",
+    "mask_area": [
+      32,
+      32,
+      224,
+      224
+    ],
+    "score": "f1",
+    "unverified_threshold": 1,
+    "test_images": null
+  },
+  "classes": [
+    {
+      "name": "Class1",
+      "description": "Test class 1",
+      "colour": [
+        255,
+        255,
+        255,
+        0
+      ],
+      "user_colour": [
+        0,
+        255,
+        255,
+        70
+      ]
+    },
+    {
+      "name": "Class2",
+      "description": "Test class 2",
+      "colour": [
+        255,
+        255,
+        0,
+        70
+      ],
+      "user_colour": [
+        255,
+        0,
+        0,
+        70
+      ]
+    }
+  ],
+  "views": {
+    "RGB": {
+      "description": "RGB test image",
+      "type": "image",
+      "data": [
+        "$B1",
+        "$B2",
+        "$B3"
+      ]
+    },
+    "Gray": {
+      "description": "Grayscale test image",
+      "type": "image",
+      "data": "$B1",
+      "cmap": "gray"
+    },
+    "Bing": {
+      "description": "Bing Maps",
+      "type": "bingmap"
+    }
+  },
+  "view_groups": {
+    "default": [
+      "RGB",
+      "Gray"
+    ],
+    "maps": [
+      "Bing"
+    ]
+  }
+}

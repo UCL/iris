@@ -141,6 +141,9 @@
         <li class="toolbutton icon_button" id='tb_toggle_contrast' onclick="set_contrast(!vars.vm.filters.contrast);">
             <img src={{url_for('segmentation.static', filename='icons/contrast.png')}} class="icon" />
         </li>
+        <li class="toolbutton icon_button" id='tb_toggle_contrast_window' onclick="toggle_contrast_windows();">
+            <img src={{url_for('segmentation.static', filename='icons/contrast.png')}} class="icon" style="opacity: 0.7;" />
+        </li>
         <li class="toolbutton icon_button" id='tb_toggle_invert' onclick="set_invert(!vars.vm.filters.invert);">
             <img src={{url_for('segmentation.static', filename='icons/invert.png')}} class="icon" />
         </li>
@@ -156,7 +159,7 @@
         </li>
     </ul>
 
-    <div id="views-container" style="margin: 10px 0px; width: 100%;">
+    <div id="views-container" style="margin: 60px 0px; width: 100%;">
         <!-- This will be filled up by the ViewManager -->
     </div>
 

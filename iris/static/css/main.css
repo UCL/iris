@@ -459,8 +459,110 @@ td.upper-left {
     padding: auto;
 }
 
+.view-port {
+    overflow: visible !important;
+}
+
 .view-controls {
     position: absolute;
-    z-index: 20;
-    visibility: hidden;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: visible !important;
+}
+
+.contrast-window-container {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    right: 10px;
+    height: 120px;
+    background-color: rgba(0, 0, 0, 0.9) !important;
+    border-radius: 5px;
+    padding: 10px;
+    display: none;
+    pointer-events: auto;
+    z-index: 1000;
+    border: 2px solid #fff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+    transition: all 0.3s ease;
+}
+
+.contrast-window-container.minimized {
+    width: 40px !important;
+    height: 40px !important;
+    left: auto !important;
+    right: 10px !important;
+    padding: 5px !important;
+}
+
+.contrast-window-container canvas {
+    border: 1px solid #ccc;
+    background-color: #000;
+    margin-bottom: 10px;
+}
+
+.contrast-window-container input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+}
+
+.contrast-window-container input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    background: #ff0;
+    border: 2px solid #fff;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.contrast-window-container input[type="range"]::-moz-range-thumb {
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    background: #ff0;
+    border: 2px solid #fff;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.contrast-window-container input[type="range"]::-webkit-slider-track {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    height: 4px;
+}
+
+.contrast-window-container input[type="range"]::-moz-range-track {
+    background: transparent;
+    height: 4px;
+}
+
+.contrast-window-container label {
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.contrast-window-container span {
+    color: white;
+    font-size: 12px;
+    margin-left: 10px;
+}
+
+#toolbar {
+    position: relative;
+    z-index: 1000;
+}
+
+#views-container {
+    margin-top: 60px; /* Adjust if your toolbar is taller */
+    position: relative;
 }
