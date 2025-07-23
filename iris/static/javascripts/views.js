@@ -342,102 +342,53 @@ class ViewPort {
 
         this.contrast_container = document.createElement('div');
         this.contrast_container.classList.add("contrast-window-container");
-        this.contrast_container.style.position = "absolute";
-        this.contrast_container.style.bottom = "10px";
-        this.contrast_container.style.left = "10px";
-        this.contrast_container.style.right = "10px";
-        this.contrast_container.style.height = "120px";
-        this.contrast_container.style.backgroundColor = "rgba(0, 0, 0, 0.8)";
-        this.contrast_container.style.borderRadius = "5px";
-        this.contrast_container.style.padding = "10px";
-        this.contrast_container.style.display = "none";
-        this.contrast_container.style.pointerEvents = "auto";
-        this.contrast_container.style.zIndex = "1000";
-        this.contrast_container.style.transition = "all 0.3s ease";
         this.controls.appendChild(this.contrast_container);
 
-        // Minimize button
-        this.minimize_button = document.createElement('button');
-        this.minimize_button.innerHTML = "−";
-        this.minimize_button.style.position = "absolute";
-        this.minimize_button.style.top = "5px";
-        this.minimize_button.style.right = "5px";
-        this.minimize_button.style.width = "20px";
-        this.minimize_button.style.height = "20px";
-        this.minimize_button.style.border = "none";
-        this.minimize_button.style.borderRadius = "50%";
-        this.minimize_button.style.backgroundColor = "rgba(255, 255, 255, 0.3)";
-        this.minimize_button.style.color = "white";
-        this.minimize_button.style.fontSize = "16px";
-        this.minimize_button.style.fontWeight = "bold";
-        this.minimize_button.style.cursor = "pointer";
-        this.minimize_button.style.zIndex = "1001";
-        this.minimize_button.onclick = (e) => {
+        // minimise button
+        this.minimise_button = document.createElement('button');
+        this.minimise_button.classList.add("minimise-button");
+        this.minimise_btn_icon = document.createElement('img');
+        this.minimise_btn_icon.classList.add("minimise-button-icon");
+        this.minimise_btn_icon.src = "/segmentation/static/icons/minus.png";
+        this.minimise_button.appendChild(this.minimise_btn_icon);
+        this.minimise_button.onclick = (e) => {
             e.stopPropagation();
-            this.toggleMinimize();
+            this.toggleMinimise();
         };
-        this.contrast_container.appendChild(this.minimize_button);
+        this.contrast_container.appendChild(this.minimise_button);
 
         // Histogram canvas
         this.histogram_canvas = document.createElement('canvas');
-        this.histogram_canvas.width = 200;
-        this.histogram_canvas.height = 60;
-        this.histogram_canvas.style.width = "200px";
-        this.histogram_canvas.style.height = "60px";
-        this.histogram_canvas.style.border = "1px solid #ccc";
-        this.histogram_canvas.style.backgroundColor = "#000";
+        this.histogram_canvas.classList.add("histogram-canvas");
         this.contrast_container.appendChild(this.histogram_canvas);
 
         // Dual range slider container
         this.slider_container = document.createElement('div');
-        this.slider_container.style.marginTop = "10px";
-        this.slider_container.style.position = "relative";
-        this.slider_container.style.width = "200px";
-        this.slider_container.style.height = "40px";
+        this.slider_container.classList.add("slider-container");
         this.contrast_container.appendChild(this.slider_container);
 
         // Create dual range slider
         this.createDualRangeSlider();
 
         // Initialize as expanded
-        this.isMinimized = false;
+        this.isMinimised = false;
     }
 
-    toggleMinimize() {
-        this.isMinimized = !this.isMinimized;
+    toggleMinimise() {
+        this.isMinimised = !this.isMinimised;
 
-        if (this.isMinimized) {
-            // Minimize to small button
-            this.contrast_container.style.width = "40px";
-            this.contrast_container.style.height = "40px";
-            this.contrast_container.style.left = "auto";
-            this.contrast_container.style.right = "10px";
-            this.contrast_container.style.padding = "5px";
-
-            // Hide content
-            this.histogram_canvas.style.display = "none";
-            this.slider_container.style.display = "none";
+        if (this.isMinimised) {
+            // minimise to small button
+            this.contrast_container.classList.add("minimised");
 
             // Update button
-            this.minimize_button.innerHTML = "+";
-            this.minimize_button.style.top = "5px";
-            this.minimize_button.style.right = "5px";
+            this.minimise_btn_icon.src = "/segmentation/static/icons/plus.png";
         } else {
-            // Expand to full size
-            this.contrast_container.style.width = "auto";
-            this.contrast_container.style.height = "120px";
-            this.contrast_container.style.left = "10px";
-            this.contrast_container.style.right = "10px";
-            this.contrast_container.style.padding = "10px";
-
-            // Show content
-            this.histogram_canvas.style.display = "block";
-            this.slider_container.style.display = "block";
+            // remove minimised class
+            this.contrast_container.classList.remove("minimised");
 
             // Update button
-            this.minimize_button.innerHTML = "−";
-            this.minimize_button.style.top = "5px";
-            this.minimize_button.style.right = "5px";
+            this.minimise_btn_icon.src = "/segmentation/static/icons/minus.png";
         }
     }
 
@@ -821,9 +772,6 @@ class RGBLayer extends CanvasLayer {
                 filter_string.push("invert(1)");
             }
             filter_string.push("brightness(" + filters.brightness + "%)");
-            if (filters.contrast) {
-                filter_string.push("contrast(200%)");
-            }
             filter_string.push("saturate(" + filters.saturation + "%)");
             canvas.style.filter = filter_string.join(" ");
         }

@@ -476,18 +476,76 @@ td.upper-left {
 .contrast-window-container {
     position: absolute;
     bottom: 10px;
-    left: 10px;
     right: 10px;
     height: 120px;
-    background-color: rgba(0, 0, 0, 0.9) !important;
+    background-color: rgb(135, 135, 135);
     border-radius: 5px;
     padding: 10px;
     display: none;
     pointer-events: auto;
     z-index: 1000;
-    border: 2px solid #fff;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
     transition: all 0.3s ease;
+
+    &.minimised {
+        width: 25px;
+        height: 25px;
+        left: auto;
+        padding: 5px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        .histogram-canvas {
+            display: none;
+        }
+
+        .slider-container {
+            display: none;
+        }
+
+        .minimise-button {
+            position: unset;
+        }
+    }
+
+    .minimise-button {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        width: 20px;
+        height: 20px;
+        border: none;
+        border-radius: 50%;
+        background-color: rgba(135, 135, 135);
+        color: white;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        z-index: 1001;
+
+        .minimise-button-icon {
+            position: relative;
+            top: -10px;
+            left: -10px;
+            width: 20px;
+            height: 20px;
+        }
+    }
+    
+    .histogram-canvas {
+        width: 200px;
+        height: 60px;
+        margin-right: 30px;
+        border: 1px solid #ccc;
+        background-color: #000;
+    }
+
+    .slider-container {
+        margin-top: 10px;
+        position: relative;
+        width: 200px;
+        height: 40px;
+    }
 }
 
 .contrast-window-container.minimized {
