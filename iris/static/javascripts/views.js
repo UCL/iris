@@ -564,23 +564,27 @@ class ViewPort {
         if (!contrast_window.histogram) return;
 
         const ctx = this.histogram_canvas.getContext('2d');
+        // Clear the histogram canvas
         ctx.clearRect(0, 0, this.histogram_canvas.width, this.histogram_canvas.height);
 
-        // Draw histogram
+        // Draw background
         ctx.fillStyle = '#666';
         ctx.fillRect(0, 0, this.histogram_canvas.width, this.histogram_canvas.height);
 
+        // Scale histogram to fit canvas height (the highest bin should take up the full height)
         const max_count = Math.max(...contrast_window.histogram);
         const scale = this.histogram_canvas.height / max_count;
 
+        // Draw histogram bars
         ctx.fillStyle = '#fff';
         for (let i = 0; i < contrast_window.histogram.length; i++) {
             const height = contrast_window.histogram[i] * scale;
+            // Get x position for each bar while scaling to fit canvas width
             const x = (i / contrast_window.histogram.length) * this.histogram_canvas.width;
             ctx.fillRect(x, this.histogram_canvas.height - height, 1, height);
         }
 
-        // Draw contrast window lines
+        // Draw contrast window lines (yellow lines showing min/max)
         const min_x = (contrast_window.min / 255) * this.histogram_canvas.width;
         const max_x = (contrast_window.max / 255) * this.histogram_canvas.width;
 
@@ -696,13 +700,13 @@ class RGBLayer extends CanvasLayer {
     }
 
     calculateHistogram(imageData) {
-        const histogram = new Array(256).fill(0);
-        const data = imageData.data;
+        const histogram = new Array(256).fill(0);  // 256 bins
+        const data = imageData.data;  // 4 bytes per pixel (RGBA)
 
         for (let i = 0; i < data.length; i += 4) {
-            // For RGB images, use average of RGB channels
+            // For RGB images, use average of RGB channels (greyscale images are also RGBA in canvas)
             const value = Math.round((data[i] + data[i + 1] + data[i + 2]) / 3);
-            histogram[value]++;
+            histogram[value]++;  // Increment the bin for this value
         }
 
         return histogram;
