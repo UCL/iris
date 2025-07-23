@@ -720,7 +720,10 @@ class RGBLayer extends CanvasLayer {
             // Apply contrast window to each channel
             for (let j = 0; j < 3; j++) {
                 let value = data[i + j];
+                // Clamp the value to the range: values below min are set to min, 
+                // values above max are set to max
                 value = Math.max(min, Math.min(max, value));
+                // Normalize the value to stretch intermediate values to full range (0-255)
                 value = ((value - min) / range) * 255;
                 data[i + j] = Math.round(value);
             }
