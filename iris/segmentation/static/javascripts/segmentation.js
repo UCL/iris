@@ -792,7 +792,7 @@ function get_current_mask_and_colours() {
             colours.push(c.colour);
         }
         return [vars.mask, colours]
-    } else if (vars.mask_type == "combined") {  // FIXME
+    } else if (vars.mask_type == "combined") {
         var colours = [];
         for (var c of vars.classes) {
             colours.push(c.colour);

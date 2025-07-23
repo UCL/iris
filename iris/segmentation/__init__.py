@@ -162,13 +162,17 @@ def merge_masks(image_id, npy=False):
 
     db.session.commit()
 
-    merged_mask = encode_mask(
-        merged_mask, mode=project['segmentation']['mask_encoding']
-    )
     if npy:
         filename = join(project['path'], 'segmentation', image_id, 'final_combined.npy')
+        # Represent each class as one-hot
+        merged_mask = encode_mask(
+            merged_mask, mode='binary'
+        )
     else:
         filename = project['segmentation']['path'].format(id=image_id)
+        merged_mask = encode_mask(
+            merged_mask, mode=project['segmentation']['mask_encoding']
+        )
     os.makedirs(dirname(filename), exist_ok=True)
     if filename.endswith('npy'):
         np.save(filename, merged_mask, allow_pickle=False)
