@@ -235,6 +235,20 @@ class ViewManager {
         this.render();
     }
 
+    resetAllContrastWindows() {
+        for (let view_name in this.contrast_windows) {
+            this.setContrastWindow(view_name, 0, 255);
+        }
+
+        // Update UI sliders for all ports
+        for (let port of this.ports) {
+            if (port.view && port.updateSliderValues) {
+                const contrast_window = this.getContrastWindow(port.view.name);
+                port.updateSliderValues(contrast_window.min, contrast_window.max);
+            }
+        }
+    }
+
     toggleContrastWindows() {
         this.show_contrast_windows = !this.show_contrast_windows;
         for (let port of this.ports) {
@@ -596,6 +610,14 @@ class ViewPort {
         ctx.moveTo(max_x, 0);
         ctx.lineTo(max_x, this.histogram_canvas.height);
         ctx.stroke();
+    }
+
+    updateSliderValues(min, max) {
+        if (this.min_slider && this.max_slider) {
+            this.min_slider.value = min.toString();
+            this.max_slider.value = max.toString();
+            this.updateDualRangeSlider();
+        }
     }
 
     setSize(width, height) {

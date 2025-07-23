@@ -874,9 +874,7 @@ function reset_filters() {
     }
 
     // Reset all contrast window values to defaults
-    for (let view_name in vars.vm.contrast_windows) {
-        vars.vm.setContrastWindow(view_name, 0, 255);
-    }
+    vars.vm.resetAllContrastWindows();
 
     vars.vm.render();
 }
