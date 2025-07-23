@@ -234,7 +234,7 @@ function key_down(event) {
     } else if (key == "KeyR") {
         redo();
     } else if (key == "KeyC") {
-        set_contrast(!vars.vm.filters.contrast);
+        toggle_contrast_windows();
     } else if (key == "KeyI") {
         set_invert(!vars.vm.filters.invert);
     } else if (key == "ArrowUp") {
@@ -257,8 +257,6 @@ function key_down(event) {
         set_mask_type("user");
     } else if (key == "KeyH") {
         set_mask_type("errors");
-    } else if (key == "KeyT") {
-        toggle_contrast_windows();
     } else if (key.startsWith("Digit") || key.startsWith("Numpad")) {
         // Why do we subtract 1 from this? The class ids start with 0, so we
         // want to make the hotkey easier:
@@ -317,18 +315,6 @@ function set_current_class(class_id) {
 
     // Convenience - automatically change to drawing tool after selecting class:
     set_tool("draw");
-}
-
-function set_contrast(visible) {
-    vars.vm.filters.contrast = visible;
-
-    if (vars.vm.filters.contrast) {
-        get_object("tb_toggle_contrast").classList.add("checked");
-    } else {
-        get_object("tb_toggle_contrast").classList.remove("checked");
-    }
-
-    vars.vm.render();
 }
 
 function toggle_contrast_windows() {
@@ -880,7 +866,6 @@ function reset_mask() {
 function reset_filters() {
     vars.vm.filters.brightness = 100;
     vars.vm.filters.saturation = 100;
-    set_contrast(false);
     set_invert(false);
 
     // Reset contrast windows
