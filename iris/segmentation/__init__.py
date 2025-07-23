@@ -112,10 +112,20 @@ def read_masks(image_id, user_id):
 def merge_masks(image_id, npy=False):
     """Combine the masks of all users to a resulting mask"""
     final_mask_paths = get_mask_filenames(image_id, user_id="*")[0]
-    users, final_masks = zip(*[
+
+    # Select all complete final masks for the given image id
+    actions = Action.query.filter_by(image_id=image_id)
+    complete_mask_uids = [str(a.user_id) for a in actions if a.complete]
+
+    complete_masks = list(zip(*[
         [basename(path).split('_')[0], np.argmax(np.load(path), axis=-1)]
-        for path in glob(final_mask_paths)
-    ])
+        for path in glob(final_mask_paths) if basename(path).split('_')[0] in complete_mask_uids
+    ]))
+
+    if len(complete_masks) != 2:
+        return flask.make_response("Too few complete masks to merge!", 404)
+
+    users, final_masks = complete_masks
     final_masks = np.dstack(final_masks)
 
     # Time to merge the masks, i.e. we are going to count which class is the
