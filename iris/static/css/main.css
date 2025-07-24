@@ -138,6 +138,7 @@ img {
 
 .statusbar {
     display: flex;
+    flex-wrap: wrap;
     align-items: stretch;
     /* list-style-type: none; */
     /* border: 2px solid black;
@@ -207,6 +208,7 @@ button:hover,.button:hover,.toolbutton:hover,.statusbutton:hover{
 .info-box-bottom{
     font-size: 12px;
     font-weight: normal;
+    white-space: nowrap;
 }
 
 .slider {
