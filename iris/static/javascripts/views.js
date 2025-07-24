@@ -110,7 +110,7 @@ class ViewManager {
 
     calculateViewWidthHeight() {
 
-        let horizontal_spacing = 10;
+        let horizontal_spacing = 30;
         let vertical_spacing = 150;
 
         let allowed_width = round_number(

@@ -148,6 +148,7 @@ img {
     /* padding: 4px; */
     overflow: visible;
     font-size: 18px;
+    grid-area: statusbar;
 }
 
 .statusbutton,.complete-statusbutton {
@@ -433,46 +434,6 @@ td.upper-left {
   color: white;
 }
 
-.view-canvas {
-    border: 1px solid black;
-    background-color: transparent;
-    cursor: crosshair;
-    position: absolute; left: 0; top: 0;
-    -webkit-touch-callout: none; /* iOS Safari */
-    -webkit-user-select: none; /* Safari */
-     -khtml-user-select: none; /* Konqueror HTML */
-       -moz-user-select: none; /* Old versions of Firefox */
-        -ms-user-select: none; /* Internet Explorer/Edge */
-            user-select: none; /* Non-prefixed version, currently
-                                  supported by Chrome, Opera and Firefox */
-}
-
-.view-description {
-    overflow: auto; /* Enable scroll if needed */
-    color: black;
-    z-index: 20; /* Sit on top */
-    left: 10px;
-    top: 40px;
-    text-align: center;
-    word-wrap: break-word;
-    font-size: 18px;
-    padding: auto;
-}
-
-.view-port {
-    overflow: visible !important;
-}
-
-.view-controls {
-    position: absolute;
-    top: 0px;
-    left: 0px;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    overflow: visible !important;
-}
-
 .contrast-window-container {
     position: absolute;
     bottom: 10px;
@@ -615,12 +576,77 @@ td.upper-left {
     margin-left: 10px;
 }
 
+.view-canvas {
+    border: 1px solid black;
+    background-color: transparent;
+    cursor: crosshair;
+    position: absolute; left: 0; top: 0;
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Old versions of Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome, Opera and Firefox */
+}
+
+.view-description {
+    overflow: auto; /* Enable scroll if needed */
+    color: black;
+    z-index: 20; /* Sit on top */
+    left: 10px;
+    top: 40px;
+    text-align: center;
+    word-wrap: break-word;
+    font-size: 18px;
+    padding: auto;
+}
+
+.view-port {
+    overflow: visible !important;
+}
+
+.view-controls {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: visible !important;
+}
+
 #toolbar {
     position: relative;
     z-index: 1000;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    flex-wrap: wrap;
+    grid-area: toolbar;
+
+    .toolbar-section {
+        display: flex;
+        flex-direction: row;
+        gap: 2px;
+    }
 }
 
 #views-container {
-    margin-top: 60px; /* Adjust if your toolbar is taller */
     position: relative;
+    grid-area: views-container;
+    overflow: hidden;
 }
+
+#segmentation-container {
+    display: grid;
+    grid-template-areas:
+        "toolbar"
+        "views-container"
+        "statusbar";
+    grid-template-rows: min-content 33vw 60px;
+    height: 100vh;
+    width: 100vw;
+    gap: 10px;
+}
+
