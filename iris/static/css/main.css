@@ -448,6 +448,7 @@ td.upper-left {
     pointer-events: auto;
     z-index: 1000;
     transition: all 0.3s ease;
+    max-width: 90%;
 
     &.minimised {
         width: 25px;
@@ -501,6 +502,7 @@ td.upper-left {
         margin-right: 30px;
         border: 1px solid #ccc;
         background-color: #000;
+        max-width: 90%;
     }
 
     .slider-container {
@@ -508,6 +510,7 @@ td.upper-left {
         position: relative;
         width: 200px;
         height: 40px;
+        max-width: 90%;
     }
 }
 
