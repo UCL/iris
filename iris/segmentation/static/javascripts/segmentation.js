@@ -70,12 +70,8 @@ let commands = {
     // "mask_highlight_edges": {
     //     "key": "B", "description": "Highlight edges on the masks",
     // },
-    "toggle_contrast": {
-        "key": "C",
-        "description": "Toggle contrast on/off"
-    },
     "toggle_contrast_windows": {
-        "key": "T",
+        "key": "C",
         "description": "Toggle contrast windowing with histogram"
     },
     "toggle_invert": {
@@ -326,9 +322,9 @@ function toggle_contrast_windows() {
     vars.vm.toggleContrastWindows();
 
     if (vars.vm.show_contrast_windows) {
-        get_object("tb_toggle_contrast_window").classList.add("checked");
+        get_object("tb_toggle_contrast_windows").classList.add("checked");
     } else {
-        get_object("tb_toggle_contrast_window").classList.remove("checked");
+        get_object("tb_toggle_contrast_windows").classList.remove("checked");
     }
 }
 
