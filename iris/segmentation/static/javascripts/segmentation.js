@@ -1288,7 +1288,7 @@ async function dialogue_before_next_image() {
     show_dialogue("info", content, true, "Before you continue...");
 }
 
-function dialogue_before_next_image_save_and_continue(action_id) {
+async function dialogue_before_next_image_save_and_continue(action_id) {
     vars.show_dialogue_before_next_image = false;
 
     action_info = {
@@ -1299,7 +1299,7 @@ function dialogue_before_next_image_save_and_continue(action_id) {
 
     console.log('action', action_info.complete)
 
-    fetch(`${vars.url.main}set_action_info/${action_id}`, {
+    await fetch(`${vars.url.main}set_action_info/${action_id}`, {
         method: "POST",
         body: JSON.stringify(action_info)
     })
