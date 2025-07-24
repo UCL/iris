@@ -77,6 +77,11 @@
                 <div class="toolbutton icon_button" id='tb_save_mask' onclick="save_mask();">
                     <img src={{url_for('segmentation.static', filename='icons/save_mask.png')}} class="icon" />
                 </div>
+                <div class="toolbutton icon_button" id='tb_download_final_mask' style="display:none">
+                    <a href="{{url_for('segmentation.download_final_mask', image_id=image_id)}}" download>
+                      <img src={{url_for('segmentation.static', filename='icons/download.png')}} class="icon" />
+                    </a>
+                </div>
                 <div class="toolbutton icon_button" id='tb_undo' onclick="undo();">
                     <img src={{url_for('segmentation.static', filename='icons/undo.png')}} class="icon" />
                 </div>

@@ -237,9 +237,9 @@ class Project:
             array = np.load(filename, mmap_mode='r', allow_pickle=False)
             if bands is not None:
                 array = array[..., bands]
-        elif filename.lower().endswith('vrt'):
+        elif filename.lower().endswith(('vrt','tif','tiff')):
             with rio.open(filename) as file:
-                array = file.read(bands)
+                array = file.read([b+1 for b in bands]) if bands else file.read()
                 array = np.moveaxis(array, 0, -1)
         else:
             array = imread(filename)
