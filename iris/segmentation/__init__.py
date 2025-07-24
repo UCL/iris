@@ -109,23 +109,27 @@ def read_masks(image_id, user_id):
     user_mask = np.load(user_mask_file)
     return final_mask, user_mask
 
-def merge_masks(image_id, npy=False):
-    """Combine the masks of all users to a resulting mask"""
+def merge_masks(image_id, complete=False):
+    """Combine the final masks of all users to a resulting mask and save it as an image.
+    Uses all final user masks, both complete and incomplete.
+
+    Set the 'complete' flag to True to generate a binary encoded npy merged mask file
+    using only final user masks that are marked as complete."""
+
     final_mask_paths = get_mask_filenames(image_id, user_id="*")[0]
 
-    # Select all complete final masks for the given image id
+    # Select final masks for the given image id
     actions = Action.query.filter_by(image_id=image_id)
-    complete_mask_uids = [str(a.user_id) for a in actions if a.complete]
+    mask_uids = ([str(a.user_id) for a in actions if a.complete] if complete
+                 else [str(a.user_id) for a in actions])
 
-    complete_masks = list(zip(*[
+    if len(mask_uids) < 1:
+        return flask.make_response("Too few masks to merge!", 404)
+
+    users, final_masks = zip(*[
         [basename(path).split('_')[0], np.argmax(np.load(path), axis=-1)]
-        for path in glob(final_mask_paths) if basename(path).split('_')[0] in complete_mask_uids
-    ]))
-
-    if len(complete_masks) != 2:
-        return flask.make_response("Too few complete masks to merge!", 404)
-
-    users, final_masks = complete_masks
+        for path in glob(final_mask_paths) if basename(path).split('_')[0] in mask_uids
+    ])
     final_masks = np.dstack(final_masks)
 
     # Time to merge the masks, i.e. we are going to count which class is the
@@ -172,7 +176,7 @@ def merge_masks(image_id, npy=False):
 
     db.session.commit()
 
-    if npy:
+    if complete:
         filename = join(project['path'], 'segmentation', image_id, 'final_combined.npy')
         # Represent each class as one-hot
         merged_mask = encode_mask(

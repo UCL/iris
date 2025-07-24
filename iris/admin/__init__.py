@@ -68,7 +68,7 @@ def actions(type):
     # call merge masks for each unique segmentation image
     if combine_masks and type == 'segmentation':
         for id in set(action.image_id for action in actions):
-            merge_masks(id, npy=True)
+            merge_masks(id, complete=True)
         combine_masks = False
 
     actions_json = [
