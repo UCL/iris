@@ -70,9 +70,9 @@ let commands = {
     // "mask_highlight_edges": {
     //     "key": "B", "description": "Highlight edges on the masks",
     // },
-    "toggle_contrast": {
+    "toggle_contrast_windows": {
         "key": "C",
-        "description": "Toggle contrast on/off"
+        "description": "Toggle contrast windowing with histogram"
     },
     "toggle_invert": {
         "key": "I",
@@ -235,7 +235,7 @@ function key_down(event) {
     } else if (key == "KeyR") {
         redo();
     } else if (key == "KeyC") {
-        set_contrast(!vars.vm.filters.contrast);
+        toggle_contrast_windows();
     } else if (key == "KeyI") {
         set_invert(!vars.vm.filters.invert);
     } else if (key == "ArrowUp") {
@@ -318,16 +318,19 @@ function set_current_class(class_id) {
     set_tool("draw");
 }
 
-function set_contrast(visible) {
-    vars.vm.filters.contrast = visible;
-
-    if (vars.vm.filters.contrast) {
-        get_object("tb_toggle_contrast").classList.add("checked");
-    } else {
-        get_object("tb_toggle_contrast").classList.remove("checked");
+function toggle_contrast_windows() {
+    if (!vars.vm) {
+        console.warn("ViewManager not initialized yet");
+        return;
     }
 
-    vars.vm.render();
+    vars.vm.toggleContrastWindows();
+
+    if (vars.vm.show_contrast_windows) {
+        get_object("tb_toggle_contrast_windows").classList.add("checked");
+    } else {
+        get_object("tb_toggle_contrast_windows").classList.remove("checked");
+    }
 }
 
 function set_invert(visible) {
@@ -864,8 +867,16 @@ function reset_mask() {
 function reset_filters() {
     vars.vm.filters.brightness = 100;
     vars.vm.filters.saturation = 100;
-    set_contrast(false);
     set_invert(false);
+
+    // Reset contrast windows
+    if (vars.vm.show_contrast_windows) {
+        toggle_contrast_windows();
+    }
+
+    // Reset all contrast window values to defaults
+    vars.vm.resetAllContrastWindows();
+
     vars.vm.render();
 }
 
@@ -1311,9 +1322,7 @@ async function save_mask_finished(response, call_afterwards) {
 
     if (response.status === 200) {
         show_message('Mask saved', 1000);
-        // show download button
         get_object("tb_download_final_mask").style.display = "inline-block";
-
         if (call_afterwards !== null) {
             call_afterwards();
         }
