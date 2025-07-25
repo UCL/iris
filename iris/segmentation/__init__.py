@@ -87,7 +87,7 @@ def previous_image():
     )
 
 def get_mask_filenames(image_id, user_id=None):
-    """Get final and user mask filenames"""
+    """Get final and user mask filenames."""
     final_mask = join(
         project['path'], 'segmentation', image_id,
         f'{user_id}_final.npy'
@@ -101,7 +101,7 @@ def get_mask_filenames(image_id, user_id=None):
     return final_mask, user_mask
 
 def read_masks(image_id, user_id):
-    """Read the final and user mask"""
+    """Read the final and user mask."""
     final_mask_file, user_mask_file = get_mask_filenames(image_id, user_id)
 
     final_mask = np.load(final_mask_file)
@@ -203,7 +203,7 @@ def get_score(mask1, mask2):
         return round(100 * accuracy_score(mask1, mask2))
 
 def encode_mask(mask, mode='binary'):
-    """Encode the mask to save it on disk
+    """Encode the mask to save it on disk.
 
     Args:
         mask: 2D integer numpy array.
