@@ -8,6 +8,7 @@ from sqlalchemy import func
 from iris.user import requires_admin, requires_auth
 from iris.models import db, Action, User
 from iris.project import project
+from iris.segmentation import merge_masks
 
 admin_app = flask.Blueprint(
     'admin', __name__,
@@ -55,12 +56,20 @@ def actions(type):
     order_by = flask.request.args.get('order_by', 'user_id')
     ascending = flask.request.args.get('ascending', 'true')
     ascending = True if ascending == 'true' else False
+    combine_masks = flask.request.args.get('combine_masks', 'false')
+    combine_masks = True if combine_masks == 'true' else False
 
     actions = Action.query.filter_by(type=type)
     if ascending:
         actions = actions.order_by(getattr(Action, order_by)).all()
     else:
         actions = actions.order_by(getattr(Action, order_by).desc()).all()
+
+    # call merge masks for each unique segmentation image
+    if combine_masks and type == 'segmentation':
+        for id in set(action.image_id for action in actions):
+            merge_masks(id, complete=True)
+        combine_masks = False
 
     actions_json = [
         {**action.to_json(), 'username': action.user.name}
@@ -73,7 +82,8 @@ def actions(type):
 
     html = flask.render_template(
         'admin/actions.html', action_type=type, actions=actions_json,
-        image_stats=image_stats, order_by=order_by, ascending=ascending
+        image_stats=image_stats, order_by=order_by, ascending=ascending,
+        combine_masks=combine_masks
     )
     return flask.render_template('admin/index.html', user=user, page=markupsafe.Markup(html))
 

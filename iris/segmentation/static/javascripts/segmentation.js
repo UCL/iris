@@ -63,8 +63,12 @@ let commands = {
         "key": "G",
         "description": "Show your drawn pixels only"
     },
-    "mask_errors": {
+    "mask_combined": {
         "key": "H",
+        "description": "Show the final combined mask from all users"
+    },
+    "mask_errors": {
+        "key": "J",
         "description": "Show where the AI failed to predict correctly"
     },
     // "mask_highlight_edges": {
@@ -257,6 +261,8 @@ function key_down(event) {
     } else if (key == "KeyG") {
         set_mask_type("user");
     } else if (key == "KeyH") {
+        set_mask_type("combined");
+    } else if (key == "KeyJ") {
         set_mask_type("errors");
     } else if (key.startsWith("Digit") || key.startsWith("Numpad")) {
         // Why do we subtract 1 from this? The class ids start with 0, so we
@@ -789,6 +795,12 @@ function get_current_mask_and_colours() {
             colours.push(c.colour);
         }
         return [vars.mask, colours]
+    } else if (vars.mask_type == "combined") {
+        var colours = [];
+        for (var c of vars.classes) {
+            colours.push(c.colour);
+        }
+        return [vars.combined_mask, colours]
     } else if (vars.mask_type == "user") {
         var colours = [
             [255, 255, 255, 0], // no user pixel
@@ -809,7 +821,6 @@ function get_current_mask_and_colours() {
                 mask[i] = 0;
             }
         }
-
         return [mask, colours]
     } else if (vars.mask_type == "errors") { // error mask
         var colours = [
@@ -1005,6 +1016,7 @@ async function fetch_server_update(update_config = true) {
         get_object('admin-button').style.display = "block";
     } else {
         get_object('admin-button').style.display = "none";
+        get_object('tb_mask_combined').style.display = "none";
     }
 
     if (vars.next_action !== null) {
@@ -1149,9 +1161,25 @@ async function load_mask() {
         return;
     }
 
+    var combined_results = await download(
+        vars.url.segmentation + "load_combined_mask/" + vars.image_id
+    );
+
+    if (combined_results.response.status != 200 && combined_results.response.status != 404) {
+        hide_loader();
+
+        let error = await combined_results.response.text();
+        show_dialogue(
+            "error",
+            "Could not load the mask from the server!\n" + error
+        );
+        return;
+    }
+
     var mask_length = vars.mask_shape[1] * vars.mask_shape[0];
     vars.mask = new Uint8Array(mask_length);
     vars.user_mask = new Uint8Array(mask_length);
+    vars.combined_mask = new Uint8Array(mask_length);
     vars.errors_mask = new Uint8Array(mask_length);
     vars.errors_mask.fill(0);
 
@@ -1163,6 +1191,12 @@ async function load_mask() {
         // Just use the default mask
         vars.mask.fill(0);
         vars.user_mask.fill(0);
+    }
+
+    if (combined_results.response.status == 200) {
+        vars.combined_mask = combined_results.data.slice(1, mask_length + 1);
+    } else if (combined_results.response.status == 404) {
+        vars.combined_mask.fill(0);
     }
 
     set_mask_type(vars.mask_type);
@@ -1265,7 +1299,7 @@ async function dialogue_before_next_image() {
     show_dialogue("info", content, true, "Before you continue...");
 }
 
-function dialogue_before_next_image_save_and_continue(action_id) {
+async function dialogue_before_next_image_save_and_continue(action_id) {
     vars.show_dialogue_before_next_image = false;
 
     action_info = {
@@ -1276,7 +1310,7 @@ function dialogue_before_next_image_save_and_continue(action_id) {
 
     console.log('action', action_info.complete)
 
-    fetch(`${vars.url.main}set_action_info/${action_id}`, {
+    await fetch(`${vars.url.main}set_action_info/${action_id}`, {
         method: "POST",
         body: JSON.stringify(action_info)
     })

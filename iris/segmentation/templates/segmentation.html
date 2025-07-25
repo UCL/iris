@@ -17,6 +17,7 @@
             'user': null,
             'mask': null,
             'user_mask': null,
+            'combined_mask': null,
             'errors_mask': null,
             // for performance reasons we draw the mask to a hidden canvas:
             'hidden_mask': null,
@@ -128,6 +129,9 @@
                 </div>
                 <div class="toolbutton icon_button" id='tb_mask_user' onclick="set_mask_type('user');">
                     <img src={{url_for('segmentation.static', filename='icons/mask_user.png')}} class="icon" />
+                </div>
+                <div class="toolbutton icon_button" id='tb_mask_combined' onclick="set_mask_type('combined');">
+                    <img src={{url_for('segmentation.static', filename='icons/mask_combined.png')}} class="icon" />
                 </div>
                 <div class="toolbutton icon_button" id='tb_mask_errors' onclick="set_mask_type('errors');">
                     <img src={{url_for('segmentation.static', filename='icons/mask_errors.png')}} class="icon" />

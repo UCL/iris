@@ -87,7 +87,7 @@ def previous_image():
     )
 
 def get_mask_filenames(image_id, user_id=None):
-    """Get final and user mask filenames"""
+    """Get final and user mask filenames."""
     final_mask = join(
         project['path'], 'segmentation', image_id,
         f'{user_id}_final.npy'
@@ -101,7 +101,7 @@ def get_mask_filenames(image_id, user_id=None):
     return final_mask, user_mask
 
 def read_masks(image_id, user_id):
-    """Read the final and user mask"""
+    """Read the final and user mask."""
     final_mask_file, user_mask_file = get_mask_filenames(image_id, user_id)
 
     final_mask = np.load(final_mask_file)
@@ -109,12 +109,27 @@ def read_masks(image_id, user_id):
     user_mask = np.load(user_mask_file)
     return final_mask, user_mask
 
-def merge_masks(image_id):
-    """Combine the masks of all users to a resulting mask"""
+def merge_masks(image_id, complete=False):
+    """Combine the final masks of all users to a resulting mask and save it as an image.
+    Uses all final user masks, both complete and incomplete.
+
+    Set the 'complete' flag to True to generate a binary encoded npy merged mask file
+    using only final user masks that are marked as complete."""
+
     final_mask_paths = get_mask_filenames(image_id, user_id="*")[0]
+
+    # Select final masks for the given image id
+    actions = Action.query.filter_by(image_id=image_id)
+    mask_uids = ([str(a.user_id) for a in actions if a.complete] if complete
+                 else [str(a.user_id) for a in actions])
+
+    # Return early if there are no masks to merge
+    if len(mask_uids) < 1:
+        return
+
     users, final_masks = zip(*[
         [basename(path).split('_')[0], np.argmax(np.load(path), axis=-1)]
-        for path in glob(final_mask_paths)
+        for path in glob(final_mask_paths) if basename(path).split('_')[0] in mask_uids
     ])
     final_masks = np.dstack(final_masks)
 
@@ -132,7 +147,7 @@ def merge_masks(image_id):
             # etc. to weight their mask
             class_votes[final_masks[..., u] == klass, i] += 1
 
-    # Create the final mask out of the elements occuring the most often:
+    # Create the final mask out of the elements occurring the most often:
     winner_indices = np.argmax(class_votes, axis=-1)
 
     # Retranslate to original classes (we initialised class_votes not with the
@@ -162,10 +177,17 @@ def merge_masks(image_id):
 
     db.session.commit()
 
-    merged_mask = encode_mask(
-        merged_mask, mode=project['segmentation']['mask_encoding']
-    )
-    filename = project['segmentation']['path'].format(id=image_id)
+    if complete:
+        filename = join(project['path'], 'segmentation', image_id, 'final_combined.npy')
+        # Represent each class as one-hot
+        merged_mask = encode_mask(
+            merged_mask, mode='binary'
+        )
+    else:
+        filename = project['segmentation']['path'].format(id=image_id)
+        merged_mask = encode_mask(
+            merged_mask, mode=project['segmentation']['mask_encoding']
+        )
     os.makedirs(dirname(filename), exist_ok=True)
     if filename.endswith('npy'):
         np.save(filename, merged_mask, allow_pickle=False)
@@ -181,7 +203,7 @@ def get_score(mask1, mask2):
         return round(100 * accuracy_score(mask1, mask2))
 
 def encode_mask(mask, mode='binary'):
-    """Encode the mask to save it on disk
+    """Encode the mask to save it on disk.
 
     Args:
         mask: 2D integer numpy array.
@@ -238,6 +260,27 @@ def load_mask(image_id):
         return response
     except:
         return flask.make_response("No user mask available!", 404)
+
+
+@segmentation_app.route('/load_combined_mask/<image_id>')
+@requires_auth
+def load_combined_mask(image_id):
+
+    try:
+        combined_mask_file = join(project['path'], 'segmentation', image_id, 'final_combined.npy')
+        combined_mask = np.load(combined_mask_file)
+        combined_mask = np.argmax(combined_mask, axis=-1)
+
+        data = combined_mask.ravel()
+        data = np.pad(data, 1, constant_values=(254, 254))
+
+        response = flask.make_response(
+            data.astype(np.uint8).tobytes()
+        )
+        response.headers.set('Content-Type', 'application/octet-stream')
+        return response
+    except:
+        return flask.make_response("No combined mask available!", 404)
 
 
 def align_mask_to_input(mask_file, input_file):
