@@ -123,8 +123,9 @@ def merge_masks(image_id, complete=False):
     mask_uids = ([str(a.user_id) for a in actions if a.complete] if complete
                  else [str(a.user_id) for a in actions])
 
+    # Return early if there are no masks to merge
     if len(mask_uids) < 1:
-        return flask.make_response("Too few masks to merge!", 404)
+        return
 
     users, final_masks = zip(*[
         [basename(path).split('_')[0], np.argmax(np.load(path), axis=-1)]
