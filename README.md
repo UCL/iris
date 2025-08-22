@@ -42,17 +42,79 @@ iris label <your-config-file>
 
 It is recommended to use a keyboard and mouse with scrollwheel for IRIS. Currently, control via trackpad is limited and awkward.
 
-### Docker
 
-You can also use Docker to deploy IRIS. First, build an image (run from IRIS's root directory). Then, you can use docker run to launch IRIS. However, please note that port-forwarding is needed (here we use port 80 as an example for a typical http setup, but the port number can be set in your IRIS config file) and the directory to your project also needs to be given as a volume to docker.
+## Deploying with Docker Compose
 
+This section provides step-by-step instructions for deploying IRIS using Docker Compose on your own machine, or on a public web server.
+
+### Prerequisites
+
+1. **Install Docker**: Follow the official Docker installation instructions for your operating system:
+   - [Docker Desktop for Windows/Mac](https://docs.docker.com/desktop/)
+   - [Docker Engine for Linux](https://docs.docker.com/engine/install/)
+
+2. **Clone the repository**:
+   ```bash
+   git clone https://github.com/UCL/iris.git && cd iris
+   ```
+
+3. **Set up your project directory**:
+   Create a `project` directory in the iris repository root and add your configuration files:
+   ```bash
+   mkdir project && cd project
+   ```
+   
+   You'll need to add:
+   - `config.json`: Your project configuration file (see [Configuration Guide](docs/config.md) for details)
+   - `images/`: Directory containing your image data
+   
+   Example project structure:
+   ```
+   project/
+   ├── config.json
+   └── images/
+       ├── image1/
+       │   ├── s1.tif
+       │   ├── s2.tif
+       │   ├── thumbnail.png
+       │   └── metadata.json
+       ├── image2/
+       │   ├── s1.tif
+       │   ├── s2.tif
+       │   ├── thumbnail.png
+       │   └── metadata.json
+       └── ...
+   ```
+
+4. **Build and run the containers**:
+   ```bash
+   # Build the Docker images
+   docker-compose build
+   
+   # Start the services
+   docker-compose up -d
+   ```
+
+   This will start:
+   - **IRIS service** on port 5000
+   - **Nginx reverse proxy** on port 80
+
+### Accessing IRIS
+
+Once the containers are running, if running locally, you can access IRIS through your web browser:
+- http://localhost
+Or if running on a remote server, you can access IRIS through your web browser:
+- http://\<your-server-ip\>
+
+### Stopping the Services
+
+To stop the services:
+```bash
+docker-compose down
 ```
-docker build --tag iris .
-docker run -p 80:80 -v <dataset_path>:/dataset/ --rm -it iris label /dataset/cloud-segmentation.json
-```
 
-### Run on Github Codespaces
-To run in a [Github codespace](https://docs.github.com/en/codespaces/overview) fork this repository, then in the Github UI select `Code/Codespaces/Open in codespace`. Run `pip install -e .` and then `iris demo`. You will see a popup that there is an app on port 5000, click the link to open a new window showing Iris 🎉
+### Troubleshooting
 
-
-**Visit the official iris Github page:  https://github.com/ESA-PhiLab/iris**
+- **Port conflicts**: If ports 5000 or 80 are already in use, modify the port mappings in `docker-compose.yml`
+- **Permission issues**: Ensure Docker has proper permissions to access your project directory
+- **Build errors**: Make sure Docker and Docker Compose are properly installed and up to date
