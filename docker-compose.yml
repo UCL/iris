@@ -8,11 +8,11 @@ services:
       context: .
       dockerfile: Dockerfile
     volumes:
-      - ./demo:/dataset
+      - ./project:/project
     ports:
       - "5000:5000"
     command: >
-      label /dataset/cloud-segmentation-docker.json -p
+      label /project/config.json -p
   nginx:
     image: nginx:latest
     ports:
